@@ -135,8 +135,10 @@ Example:
 Example：
 
 将下图利用HoughLinesP转换
-![lane](https://raw.githubusercontent.com/Stephenfang51/OpenCV_tutorial_chinese/master/images/lane.jpg)
 
+<img width="400" src="https://raw.githubusercontent.com/Stephenfang51/OpenCV_tutorial_chinese/master/images/lane.jpg"/>
+
+思路先利用Canny获取去噪，取得边缘，设定HoughP需要的最小直线长度，最大直线距离
 
 ```
 img = cv2.imread("lane.jpg")
@@ -160,8 +162,8 @@ cv2.destroyAllWindows()
 ```
 
 
-![lane_lines](https://raw.githubusercontent.com/Stephenfang51/OpenCV_tutorial_chinese/master/images/lane_lines.jpg =200x200)
 
+<img width="400" src="https://raw.githubusercontent.com/Stephenfang51/OpenCV_tutorial_chinese/master/images/lane_lines.jpg"/>
 
 ---
 
