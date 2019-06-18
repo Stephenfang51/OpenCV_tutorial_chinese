@@ -134,6 +134,8 @@ Example:
 
 Example：
 
+将下图利用HoughLinesP转换
+![lane](https://raw.githubusercontent.com/Stephenfang51/OpenCV_tutorial_chinese/master/images/lane.jpg)
 
 
 ```
@@ -156,6 +158,10 @@ cv2.imshow("lines", img)
 cv2.waitKey()
 cv2.destroyAllWindows()
 ```
+
+
+![lane_lines](https://raw.githubusercontent.com/Stephenfang51/OpenCV_tutorial_chinese/master/images/lane_lines.jpg =200x200)
+
 
 ---
 
