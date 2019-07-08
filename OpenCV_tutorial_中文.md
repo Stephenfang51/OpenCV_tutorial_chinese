@@ -204,8 +204,7 @@ src1[100:200, 100:200, 0] = 255
 
 
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/square.png?raw=true" style="zoom:50%"/>
-
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/square.png?raw=true" width="400">
 
 
 ------
@@ -250,9 +249,11 @@ cv.imshow("result", src)
 
 效果如下
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/spider-man.png?raw=true" style="width:400px" align="left">
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/spider-man.png?raw=true" width="400">
 
-
+<br>
+<br>
+<br>
 
 ### Mask 操作
 
@@ -262,7 +263,7 @@ Example：
 
 图片依序是 原图， 黑底彩人 蓝色彩人
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/girl_green_background.png?raw=true" style="width:200px" align="left"><img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/girl_black_background.png.png?raw=true" style="width:200px" align="center"><img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/girl_blue_background.png?raw=true" style="width:200px">
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/girl_green_background.png?raw=true" width="200"><img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/girl_black_background.png.png?raw=true" width="200"><img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/girl_blue_background.png?raw=true" width="200">
 
 
 
@@ -383,7 +384,7 @@ def custom_hist(gray):
 
 
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histogram.png?raw=true" style="width:400px">
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histogram.png?raw=true" width="400">
 
 
 
@@ -416,7 +417,7 @@ def image_hist(image):
 
 ```
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histogramBGR.png?raw=true" style="width:400px">
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histogramBGR.png?raw=true" width="400">
 
 
 
@@ -424,7 +425,7 @@ def image_hist(image):
 
 ```cv.equalizeHist(src)``` : 可将原图自动做均衡化， 提高对比加强深度
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histequal.png?raw=true" style="width:400px" align="left"><img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/result.png?raw=true" style="width:300px">
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histequal.png?raw=true" width="400" align="left"><img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/result.png?raw=true" width="300">
 
 ------
 
@@ -535,7 +536,7 @@ r = image[:,:,2]#得到红色通道
 
   - 高斯噪声是指它的概率密度函数服从高斯分布（即正态分布）的一类噪声， 椒盐噪声是出现在随机位置、噪点深度基本固定的噪声，高斯噪声与其相反，是几乎每个点上都出现噪声、噪点深度随机的噪声。
   - 通过概率论里关于正态分布的有关知识可以很简单的得到其计算方法，高斯噪声的概率密度服从高斯分布（正态分布）其中有means（平均值）和sigma（标准方差）两个参数
-  - <img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/gaussian_formula.png?raw=true" style="width:300px">
+  - <img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/gaussian_formula.png?raw=true" width="400">
 
   ```python
   def gaussian_noise(image):
