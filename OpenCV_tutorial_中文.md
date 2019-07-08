@@ -1,5 +1,6 @@
 <h1 align = center >OpenCV3 python实践</h1>
-<h4 align = right >update 2019.7.1</h4>
+<h4 align = right >update 2019.7.7</h4>
+
 1. [requirement](#)
 2. [图像阵列算数运算](#)
 3. [图像Resize与插值法](#)
@@ -18,29 +19,32 @@
 16. [噪声](#)
 17. [去噪声](#)
 18. [滤波器](#)
-   - 高通滤波(HBF)
-   - 低通滤波(LPF)
-19. [边缘检测](#)
-20. [轮廓检测](#)
-   - [方法](#)
-21. [直线检测](#)
-   - Hough 霍夫
-22. [图像二值化](#)
-23. [数据结构](#)
-24. [问题解决](#)
+    - 高通滤波(HBF)
+    - 低通滤波(LPF)
+19. [图像积分图算法](#) （待新增）
+20. [边缘检测](#)
+21. [轮廓检测](#)
+    - [方法](#)
+22. [直线检测](#)
+    - Hough 霍夫
+23. [图像二值化](#)
+24. [数据结构](#)
+25. [问题解决](#)
 
----
+------
 
 <h3 id=>requirement</h3>
+
 1. Numpy 
 2. Scipy
 3. OpenNI (可选）
 4. SensorKinect （可选）
 5. Imutils
 
----
+------
 
 <h3 id=>图像阵列算数运算</h3>
+
 下列依照顺序是加减乘除
 
 ```cv2.add(src1, src2, dst=None)``` 
@@ -51,9 +55,10 @@
 
 ```cv2.divide(src1, src2, dst=None)```
 
----
+------
 
 <h3 id=>图像Resize</h3>
+
 ```cv2.resize(src, (x, y), fx = None, fy = None, interpolation=cv.INTER_NEAREST)``` 
 
 缩放方式可以有两种：
@@ -74,9 +79,10 @@
 
   
 
----
+------
 
 <h3 id=>图像亮度与对比</h3>
+
 ### solution 1
 
 公式 **dst = src1 * alpha+src2 * beta + gamma**
@@ -110,18 +116,20 @@ cv2.destroyAllWindows()
 
 ### Solution 3
 
----
+------
 
 <h3 id=>图像色彩空间转换</h3>
+
 ```cv2.cvtColor(src, cv2.COLOR_效果)``` 
 
 ```cv2.inrange(src, low, hight)```:low值及high填入三个通道的范围ex.(65, 45, 192) 
 
 在low以及high范围内的值， 会自动赋予255(白), 在范围外面的值会赋予0(黑)
 
----
+------
 
 <h3 id=>图像像素统计</h3>
+
 ```cv2.minMaxLoc(src)```: 输入灰度图or数组， 函数可以返回四个值 依序是：1.最小值 2.最大值 3最小值索引 4最大值索引
 
 Example:
@@ -135,14 +143,16 @@ cv.minMaxLoc(x)
 >>>(1.0, 9.0, (0, 0), (2, 2))
 ```
 
----
+------
 
 <h3 id=>图像均值及标准差</h3>
+
 ```cv2.meanStdDev(src)``` : 该函数返回两个值 1.均值 2.标准差
 
----
+------
 
 <h3 id=>图像归一化</h3>
+
 ```cv2.normalize(src, dst, alpha, beta, norm_type=cv.归一化方法)```：
 
 - NORM_MINMAX
@@ -150,16 +160,18 @@ cv.minMaxLoc(x)
 - NORM_L1
 - NORM_L2 最常用的就是NORM_MINMAX归一化方法。
 
----
+------
 
 <h3 id=>LUT查找表applyColormap</h3>
+
 ```cv2.applyColorMap(src, cv2.COLORMAP_效果)``` :将Colormap中封装的效果加到你的原图上
 
 
 
----
+------
 
 <h3 id=>图像像素点索引</h3>
+
 Image[y, x]可以直接返回坐标的像素值
 
 例如创造了一条直线在histImg上 起始点是(x, y) = (0, 125这个位置)， 如下图可以清楚看见图像， 则我们要确认图像上的蓝色线的起始点像素值， 则可以histImg[125, 0]， 注意这里是[y, x], 得到BGR返回样式， 如果是灰度图 返回的就是单个值
@@ -196,9 +208,10 @@ src1[100:200, 100:200, 0] = 255
 
 
 
----
+------
 
 <h3 id=>逻辑运算</h3>
+
 ```python
 cv2.bitwise_and(src1, src2) :取重叠的像素A跟B都有的值
 cv2.bitwise_xor(src1, src2) : A跟B各自的加上重叠后的值
@@ -210,9 +223,10 @@ cv2.bitwise_not(src):not表示都不属于集合里面的元素，所有255-原�
 
 
 
----
+------
 
 <h3 id=>ROI区域操作(mask)</h3>
+
 Example ： 从原图获取ROI的位置, 改变ROI颜色
 
 ```python
@@ -261,9 +275,7 @@ mask制作的思路 （这里不用什么与非来解释，太过麻烦容易忘
 例如例子中第一个需求：
 
 1. 将二值化的图取反得到白背景/黑人的mask
-
 2. and操作表示会显示src2 and src2两个都有的像素， 这一步就是一张正常的src2 彩人绿背景
-
 3. 将刚刚弄好的Mask(黑底白人）放上去，那么黑色就把绿色覆盖了， 留下彩人， 也就是我们要的黑背景彩色人
 
 ```python
@@ -313,10 +325,9 @@ cv.waitKey(0)
 cv.destroyAllWindows()
 ```
 
----
+------
 
 <h3 id=>图像直方图统计/均衡化</h3>
-
 
 定义直方图生成的函数method
 
@@ -336,14 +347,14 @@ cv.destroyAllWindows()
 3. 利用刚刚的hw遍历原图每个坐标点上的像素，假设第一个遍历的像素值是L27 那就在hist[27]+1， 全部遍历完之后，hist就得到所有像素值的个数了
 4. y_pos 创造0~256
 5. plt.bar(left, height, alpha=1, width=0.8, color=, edgecolor=, label=, lw=3)
-    1. left：x轴的位置序列，一般采用arange函数产生一个序列； 
-    2. height：y轴的数值序列，也就是柱形图的高度，一般就是我们需要展示的数据； 
-    3. alpha：透明度 
-    4. width：为柱形图的宽度，一般这是为0.8即可； 
-    5. color或facecolor：柱形图填充的颜色； 
-    6. edgecolor：图形边缘颜色 
-    7. label：解释每个图像代表的含义 
-    8. linewidth or linewidths or lw：边缘or线的宽度
+   1. left：x轴的位置序列，一般采用arange函数产生一个序列； 
+   2. height：y轴的数值序列，也就是柱形图的高度，一般就是我们需要展示的数据； 
+   3. alpha：透明度 
+   4. width：为柱形图的宽度，一般这是为0.8即可； 
+   5. color或facecolor：柱形图填充的颜色； 
+   6. edgecolor：图形边缘颜色 
+   7. label：解释每个图像代表的含义 
+   8. linewidth or linewidths or lw：边缘or线的宽度
 6. plt.xticks 表示的是刻度，传入的必须是数组形式包含步长 例如x
 7. plt.ylabel('Frequency') / plt.xlabel('pixels') 分别代表y, x轴名称
 8. plt.show 将图标呈现出来
@@ -383,13 +394,13 @@ def custom_hist(gray):
 1. 定义color
 2. 遍历这三个color (BGR)
 3. cv2.calcHist(images, channels, mask, histSize, ranges[, hist[, accumlate ]])
-    - 其中第一个参数 images 必须用方括号括起
-    - 第二个参数 channels 是用于计算直方图的通道，这里使用灰度图计算直方图，所以就直接使用第一个通道, 如果是灰度图就是[0]， BGR = [0],[1],[2], HSV = [0], [1], [2]
-    - 第三个参数 要计算的ROI区域，如果是整个图像就None
-    - 第四个参数 histSize 表示这个直方图分成多少份（即多少个直方柱bin） 一般如果统计[0-255], 那么就填写256
-    - 第五个参数 ranges 表示要计算的像素值范围， [0, 255] 表示直方图能表示像素值从 0 到 255 的像素, 如果取H,S 则[0, 180, 0, 255]
-    - 由于直方图作为函数结果返回了，所以 hist 没有意义
-    - accumulate 是一个布尔值，用来表示直方图是否叠加
+   - 其中第一个参数 images 必须用方括号括起
+   - 第二个参数 channels 是用于计算直方图的通道，这里使用灰度图计算直方图，所以就直接使用第一个通道, 如果是灰度图就是[0]， BGR = [0],[1],[2], HSV = [0], [1], [2]
+   - 第三个参数 要计算的ROI区域，如果是整个图像就None
+   - 第四个参数 histSize 表示这个直方图分成多少份（即多少个直方柱bin） 一般如果统计[0-255], 那么就填写256
+   - 第五个参数 ranges 表示要计算的像素值范围， [0, 255] 表示直方图能表示像素值从 0 到 255 的像素, 如果取H,S 则[0, 180, 0, 255]
+   - 由于直方图作为函数结果返回了，所以 hist 没有意义
+   - accumulate 是一个布尔值，用来表示直方图是否叠加
 4. plot 用来绘制  
 5. plt.xlim跟xticks有点相似, xticks 可以手刻度数
 
@@ -402,6 +413,7 @@ def image_hist(image):
         plt.plot(hist, color=color)
         plt.xlim([0, 256])
     plt.show()    
+
 ```
 
 <img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190701202337834.png" style="width:400px">
@@ -414,9 +426,10 @@ def image_hist(image):
 
 <img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190701202702198.png" style="width:400px" align="left"><img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190701202813053.png" style="width:300px">
 
----
+------
 
 <h3 id=>直方图反向投影Back projection</h3>
+
 反向投影可以用来做图像分割，寻找ROI区间。它会输出与输入图像大小相同的图像，输出的图像上每一个**像素值**代表了输入图像上对应点属于目标对象的概率，简言之，<mark>输出图像中像素值越高的点越可能代表想要查找的目标</mark>。
 
 **执行思路**
@@ -464,16 +477,17 @@ hist2d_demo(x)
 
 cv.waitKey()
 cv.destroyAllWindows()
+
 ```
 
----
+------
 
 <h3 id=>知识点</h3>
+
 imwrite()函数要求图像为BGR or 灰度， 并且每个通道有一的bit
 ， 输出格式必须支持
 
 例如 bmp要求通道有8位， png允许8 or 16位元
-
 
 b = image[:,:,0]#得到蓝色通道
 
@@ -481,7 +495,8 @@ g = image[:,:,1]#得到绿色通道
 
 r = image[:,:,2]#得到红色通道
 
----
+------
+
 <h3 id=>噪声 noise</h3>
 
 - #### 椒盐噪声（salt-pepper)
@@ -513,6 +528,7 @@ r = image[:,:,2]#得到红色通道
   img = addsalt_pepper(img.transpose(2, 1, 0), 0.9)
   img = img.transpose(2, 1, 0)
   img = cv2.imwrite("spider-man-noise.jpg", img)
+  
   ```
 
 - #### 高斯噪声 （Gaussian）
@@ -537,9 +553,10 @@ r = image[:,:,2]#得到红色通道
   
   cv.waitKey(0)
   cv.destroyAllWindows()
+  
   ```
 
----
+------
 
 <h3 id=>去噪声</h3>
 
@@ -551,7 +568,8 @@ r = image[:,:,2]#得到红色通道
 - 非局部均值去噪声
   - ```cv2.fastNlMeansDenoisingColored(src, dst=None, h=None, hColor=None, templateWindowSize=None, searchWindowSize=None)```
 
----
+------
+
 <h3 id=>滤波器 - 高通滤波</h3>
 
 检测图像某区域， 根据像素与周围像素的亮度来提升（boost)
@@ -626,22 +644,26 @@ cv.imshow("shape=3x3", dst1)
 cv.waitKey(0)
 cv.destroyAllWindows()
 
+
 ```
 
 <img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190708222334534.png">
 
 
 
+<h3 id=>图像积分图算法</h3>
 
+待新增
 
----
-
+------
 
 <h3 id=>边缘检测滤波函数</h3>
 
 <h4 id=>cv2.Canny</h4>
+
 ```python
 cv2.Canny(src, dst, threshold1, threshold2, apertureSize, L2gradient)
+
 ```
 
 
@@ -686,21 +708,23 @@ ksize 是滤波核（filter）的宽高， 奇数
 
 
 
----
+------
 
 <h3 id=>轮廓检测</h3>
 <h4 id=>方法</h4>
+
 ```cv2.minAreaRect()``` :计算出包围目标的最小矩形区域
 
 ```cv2.boxpoint()``` : 计算出矩形顶点
 
 Example :
+
 ```
 rect = cv2.minAreaRect(c) #计算出包围目标的最小矩形区域
     box = cv2.boxPoints(rect) 
     box = np.int0(box) #浮点数转为整数
-```
 
+```
 
 在图像上画出轮廓:
 
@@ -718,7 +742,6 @@ Example:
 <br>
 <br>
 
-
 ```cv2.minEnclosingCircle()```: 返回 1.包围目标的元中心坐标 2. 圆的半径radius
 
 Example:
@@ -728,13 +751,15 @@ Example:
     center = (int(x), int(y)) #整数
     radius = int(radius)
     img3 = cv2.circle(img3, center, radius, (0, 255, 0), 2) #在图像上画出来
+
 ```
 
 
 
----
+------
 
 <h3 id=> 直线检测 - Hough</h3>
+
 1. HoughLines
 2. HoughLinesP(img, rho, theta, minLineLength, maxLineGap)
 
@@ -743,7 +768,6 @@ Example:
 - theta:  参数极角 \theta 以弧度为单位的分辨率. 我们使用 1度 (即CV_PI/180)
 - threshold:    设置阈值： 一条直线所需最少的的曲线交点。超过设定阈值才被检测出线段，值越大，基本上意味着检出的线段越长，检出的线段个数越少。
 - minLinLength: 能组成一条直线的最少点的数量. 点数量不足的直线将被抛弃.
-
 - maxLineGap:   能被认为在一条直线上的两点的最大距离。
 
 
@@ -771,17 +795,20 @@ cv2.imshow("edge", edge)
 cv2.imshow("lines", img)
 cv2.waitKey()
 cv2.destroyAllWindows()
+
 ```
 
 
 
 <h3 id=> 圓检测 - Hough</h3>
+
 用到的是HoughCircles 這個方法
 
 跟直線類似，有一個圓心間的最小距離和圓的最小及最大半徑
 
 ```python
 HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None, minRadius=None, maxRadius=None)
+
 ```
 
 - image :8-bit, single-channel, grayscale input image.  image输入必须是8位的单通道灰度图像
@@ -796,21 +823,24 @@ HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None,
 
 
 
----
+------
 
 <h3 id=>图像二值化-非黑即白</h3>
+
 使用cv2.threshold(src, 分类阈值, 不合格所赋予的值， 方法) 
 
 Example:
+
 ```
 img = cv2.imread("lane.jpg", 0)
 ret, thresh = cv2.threshold(img, 127, 255, 0)
 cv2.imshow("wow", thresh)
 cv2.waitKey()
 cv2.destroyAllWindows()
+
 ```
 
----
+------
 
 <h3 align = left> 数据结构 </h3>
 
@@ -836,15 +866,17 @@ CV_32FC1   CV_32FC2  CV_32FC3   CV_32FC4
 
 CV_64F   (64 bit 浮点)
 CV_64FC1   CV_64FC2  CV_64FC3  CV_64FC4  
+
 ```
 
 
 
 
 
----
+------
 
 <h3 align = center> 问题解决 </h3>
+
 1. 问题一
 
 FindContours support only 8uC1 and 32sC1 images in function cvStartFindContours
@@ -852,6 +884,6 @@ FindContours support only 8uC1 and 32sC1 images in function cvStartFindContours
 只支持 single channel, unit8
 
 1. 解决
-输入findContours函数之前， 先将图像进行转换成unit8, channel = 1的
+   输入findContours函数之前， 先将图像进行转换成unit8, channel = 1的
 
 ```cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)```
