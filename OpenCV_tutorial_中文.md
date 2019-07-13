@@ -1,5 +1,5 @@
 <h1 align = center >OpenCV3 python实践</h1>
-<h4 align = right >update 2019.7.7</h4>
+<h4 align = right >update 2019.7.13</h4>
 
 1. [requirement](#)
 2. [图像阵列算数运算](#)
@@ -23,6 +23,12 @@
     - 低通滤波(LPF)
 19. [图像积分图算法](#) （待新增）
 20. [边缘检测](#)
+    - 一阶导数
+      - Sobel 算子
+      - Rober / Prewitt 算子
+    - 二阶导数
+      - Laplacian 拉普拉斯 算子
+      - Canny 检测
 21. [轮廓检测](#)
     - [方法](#)
 22. [直线检测](#)
@@ -187,7 +193,7 @@ cv.line(histImg, (0,125), (255, 255), [240, 0, 0])
 array([240,   0,   0], dtype=uint8)
 ```
 
-![image-20190701192716287](https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/line.png?raw=true)
+![image-20190701192716287](/Users/stephenfang/Library/Application Support/typora-user-images/image-20190701192716287.png)
 
 
 
@@ -204,7 +210,8 @@ src1[100:200, 100:200, 0] = 255
 
 
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/square.png?raw=true" width="400">
+<img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190623165446543.png" style="zoom:50%"/>
+
 
 
 ------
@@ -249,11 +256,9 @@ cv.imshow("result", src)
 
 效果如下
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/spider-man.png?raw=true" width="400">
+<img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190629224356548.png" style="width:400px" align="left">
 
-<br>
-<br>
-<br>
+
 
 ### Mask 操作
 
@@ -263,7 +268,7 @@ Example：
 
 图片依序是 原图， 黑底彩人 蓝色彩人
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/girl_green_background.png?raw=true" width="200"><img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/girl_black_background.png.png?raw=true" width="200"><img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/girl_blue_background.png?raw=true" width="200">
+<img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190629225043540.png" style="width:200px" align="left"><img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190629225213650.png" style="width:200px" align="center"><img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190629225553087.png" style="width:200px">
 
 
 
@@ -384,7 +389,7 @@ def custom_hist(gray):
 
 
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histogram.png?raw=true" width="400">
+<img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190701202222298.png" style="width:400px">
 
 
 
@@ -414,10 +419,9 @@ def image_hist(image):
         plt.plot(hist, color=color)
         plt.xlim([0, 256])
     plt.show()    
-
 ```
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histogramBGR.png?raw=true" width="400">
+<img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190701202337834.png" style="width:400px">
 
 
 
@@ -425,7 +429,7 @@ def image_hist(image):
 
 ```cv.equalizeHist(src)``` : 可将原图自动做均衡化， 提高对比加强深度
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histequal.png?raw=true" width="400" align="left"><img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/result.png?raw=true" width="300">
+<img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190701202702198.png" style="width:400px" align="left"><img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190701202813053.png" style="width:300px">
 
 ------
 
@@ -478,7 +482,6 @@ hist2d_demo(x)
 
 cv.waitKey()
 cv.destroyAllWindows()
-
 ```
 
 ------
@@ -529,14 +532,13 @@ r = image[:,:,2]#得到红色通道
   img = addsalt_pepper(img.transpose(2, 1, 0), 0.9)
   img = img.transpose(2, 1, 0)
   img = cv2.imwrite("spider-man-noise.jpg", img)
-  
   ```
 
 - #### 高斯噪声 （Gaussian）
 
   - 高斯噪声是指它的概率密度函数服从高斯分布（即正态分布）的一类噪声， 椒盐噪声是出现在随机位置、噪点深度基本固定的噪声，高斯噪声与其相反，是几乎每个点上都出现噪声、噪点深度随机的噪声。
   - 通过概率论里关于正态分布的有关知识可以很简单的得到其计算方法，高斯噪声的概率密度服从高斯分布（正态分布）其中有means（平均值）和sigma（标准方差）两个参数
-  - <img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/gaussian_formula.png?raw=true" width="400">
+  - <img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190708202420516.png" style="width:300px">
 
   ```python
   def gaussian_noise(image):
@@ -554,7 +556,6 @@ r = image[:,:,2]#得到红色通道
   
   cv.waitKey(0)
   cv.destroyAllWindows()
-  
   ```
 
 ------
@@ -645,10 +646,9 @@ cv.imshow("shape=3x3", dst1)
 cv.waitKey(0)
 cv.destroyAllWindows()
 
-
 ```
 
-<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/face.png?raw=true">
+<img src="/Users/stephenfang/Library/Application Support/typora-user-images/image-20190708222334534.png">
 
 
 
@@ -660,21 +660,282 @@ cv.destroyAllWindows()
 
 <h3 id=>边缘检测滤波函数</h3>
 
-<h4 id=>cv2.Canny</h4>
+###  一阶导数类
+
+#### Sobel 算子
+
+```Sobel(src, ddepth, dx, dy[, dst[, ksize[, scale[, delta[, borderType]]]]])```
+
+- src：输入图像
+- ddepth: 输出图像的深度（可以理解为数据类型），-1表示与原图像相同的深度
+- dx,dy:当组合为dx=1,dy=0时求x方向的一阶导数，当组合为dx=0,dy=1时求y方向的一阶导数（如果同时为1，通常得不到想要的结果）
+- ksize:（可选参数）Sobel算子的大小，必须是1,3,5或者7,默认为3。求X方向和Y方向一阶导数时，卷积核分别为：
+
+<img src="https://wx2.sinaimg.cn/mw1024/006GmCpQgy1g4y57qs6e9j30u0140k71.jpg" width=200>
+
+
+
+- scale:（可选参数）将梯度计算得到的数值放大的比例系数，效果通常使梯度图更亮，默认为1
+- delta:（可选参数）在将目标图像存储进多维数组前，可以将每个像素值增加delta，默认为0
+- borderType:（可选参数）决定图像在进行滤波操作（卷积）时边沿像素的处理方式，默认为BORDER_DEFAULT
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/Sobel_kernel.jpg?raw=true">
+
+
+
+
+
+
+
+Example:
 
 ```python
-cv2.Canny(src, dst, threshold1, threshold2, apertureSize, L2gradient)
+"""
+執行思路
 
+求出src原圖像的x以及y的梯度(dx, dy)，x以及y計算出的結果會不同， 一個是水平，一個是縱向的效果，y對圖像上水平的邊緣特別明顯， x則相反
+
+x_grad/y_grad可能會非常大，所以必須進行convertScale都變成正值
+
+然後在將x_grad 與 y_grad進行add 求的最終結果， 也就是dx+dy
+
+"""
+
+src = cv.imread("face.jpg")
+cv.imshow("src", src)
+
+h, w = src.shape[:2]
+x_grad = cv.Sobel(src, cv.CV_32F, 1, 0)
+# x_grad = cv.Scharr(src, cv.CV_32F, 1, 0) #也可以用scharr算子試試
+#第三個參數1 
+y_grad = cv.Sobel(src, cv.CV_32F, 0, 1) 
+# y_grad = cv.Scharr(src, cv.CV_32F, 0, 1) 
+
+x_grad = cv.convertScaleAbs(x_grad)
+y_grad = cv.convertScaleAbs(y_grad)
+cv.imshow("x_grad", x_grad)
+cv.imshow("y_grad", y_grad)
+
+dst = cv.add(x_grad, y_grad, dtype = cv.CV_16S)
+dst = cv.convertScaleAbs(dst)
+cv.imshow("gradient", dst)
+
+
+#下面將src跟dst合併
+result = np.zeros([h, w*2, 3], dtype = src.dtype)
+result[0:h, 0:w, :] = src
+result[0:h, w:2*w, :] = dst
+cv.imshow("result", result)
+# cv.imwrite("")
+
+cv.waitKey(0)
+cv.destroyAllWindows()
+```
+
+Result:
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/Sobel_result.jpg?raw=true">
+
+
+
+
+
+convertScaleAbs**
+
+sobel or scharr 算出來的值會很大 容易超出0~255, 利用convertScale 將元素都變成正值无符号8bit的形式
+
+```convertScaleAbs(src[, dst[, alpha[, beta]]])```
+
+- src 輸入圖像
+- dst 目標圖像
+- alpha optional scale factor.
+- beta optional delta added to the scaled values.
+
+
+
+
+
+#### Robert / Prewitt 算子
+
+利用cv.filter2D的方式对原图进行卷积操作
+
+
+
+Example:
+
+```python
+import cv2 as cv
+import numpy as np
+
+src = cv.imread("face.jpg")
+
+#robert 定義2*2的
+robert_x = np.array([[1, 0], 
+                     [0, -1]], dtype=np.float32)
+robert_y = np.array([[0, -1], 
+                     [1, 0]], dtype=np.float32)
+
+#prewitt 定義為3*3的
+prewitt_x = np.array([[-1, 0,  1], 
+                      [-1, 0, 1],  
+                      [-1, 0, 1]], dtype=np.float32)
+prewitt_y = np.array([[-1, -1, -1], 
+                      [0, 0, 0], 
+                      [1, 1, 1]],  dtype=np.float32)
+
+#利用filter2D 來進行卷積
+
+robert_grad_x = cv.filter2D(src, cv.CV_16S, robert_x)
+robert_grad_y = cv.filter2D(src, cv.CV_16S, robert_y)
+robert_grad_x = cv.convertScaleAbs(robert_grad_x)
+robert_grad_y = cv.convertScaleAbs(robert_grad_y)
+
+prewitt_grad_x = cv.filter2D(src, cv.CV_32F, prewitt_x)  #取值空間比較大所以給CV_32F
+prewitt_grad_y = cv.filter2D(src, cv.CV_32F, prewitt_y)
+prewitt_grad_x = cv.convertScaleAbs(prewitt_grad_x)
+prewitt_grad_y = cv.convertScaleAbs(prewitt_grad_y)
+
+# cv.imshow("robert x", robert_grad_x);
+# cv.imshow("robert y", robert_grad_y);
+# cv.imshow("prewitt x", prewitt_grad_x);
+# cv.imshow("prewitt y", prewitt_grad_y);
+
+h, w = src.shape[:2]
+robert_result = np.zeros([h, w*2, 3], dtype=src.dtype)
+robert_result[0:h,0:w,:] = robert_grad_x
+robert_result[0:h,w:2*w,:] = robert_grad_y
+cv.imshow("robert_result", robert_result)
+
+prewitt_result = np.zeros([h, w*2, 3], dtype=src.dtype)
+prewitt_result[0:h,0:w,:] = prewitt_grad_x
+prewitt_result[0:h,w:2*w,:] = prewitt_grad_y
+cv.imshow("prewitt_result", prewitt_result)
+
+
+cv.waitKey(0)
+cv.destroyAllWindows()
 ```
 
 
 
-src：輸入圖，單通道8位元圖。
-dst：輸出圖，尺寸、型態和輸入圖相同。
-threshold1：第一個閾值。
-threshold2：第二個閾值。
-apertureSize ：Sobel算子的核心大小。
-L2gradient ：梯度大小的算法，預設為false。
+
+
+
+
+###  
+
+### 二阶导数类
+
+#### Laplacian 拉普拉斯 算子
+
+图像的一阶导数算子可以得到图像梯度局部梯度的相应值，那么二阶导数能通过瞬间图像像素值强度的变化来检测图像边缘，其原理跟图像的一阶导数有点类似，只是在二阶导数是求X、Y方向的二阶偏导数，对图像来说：
+
+- X方向的二阶偏导数就是 dx = f(x+1, y) + f(x-1, y) – 2*f(x, y)
+- Y方向的二阶偏导数就是 dy = f(x, y+1) + f(x, y-1) – 2*f(x, y)
+
+```Laplacian(src, ddepth[, dst[, ksize[, scale[, delta[, borderType]]]]])```
+
+- src：源图像 
+- dst：目标图像。 
+- ddepth：输出图像的深度。 
+- ksize：用于计算二阶导数的滤波器的孔径尺寸，大小必须为正奇数，且有默认值1。 
+- scale：计算导数值时可选的缩放因子，默认值是1。 
+- delta：有默认值可忽略。 
+- borderType：有默认值可忽略。
+
+Example:
+
+```python
+import cv2 as cv
+import numpy as np
+
+image = cv.imread('face.jpg')
+h, w = image.shape[:2] 
+src = cv.GaussianBlur(image, (0, 0), 1)
+dst = cv.Laplacian(src, cv.CV_32F, ksize=3, delta=127)
+dst = cv.convertScaleAbs(dst)
+
+
+
+result = np.zeros([h, w*2, 3], dtype=image.dtype)
+result[0:h,0:w,:] = image
+result[0:h,w:2*w,:] = dst
+cv.imshow("result", result)
+# cv.imwrite("D:/laplacian_08.png", result)
+
+cv.waitKey()
+cv.destroyAllWindows()
+```
+
+Result
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/Laplacian_result.jpg?raw=true">:
+
+
+
+
+
+
+
+
+
+#### Canny 检测
+
+Canny 边缘检测算法 是 John F. Canny 于 1986年开发出来的一个多级边缘检测算法，也被很多人认为是边缘检测的 最优算法, 最优边缘检测的三个主要评价标准是:
+
+- 低错误率: 标识出尽可能多的实际边缘，同时尽可能的减少噪声产生的误报。
+- 高定位性: 标识出的边缘要与图像中的实际边缘尽可能接近。
+- 最小响应: 图像中的边缘只能标识一次。
+
+> Canny算法是如何做到精准的边缘提取的，主要是靠下面五个步骤
+
+1. 高斯模糊 – 抑制噪声
+2. 梯度提取得到边缘候选
+3. 角度计算与非最大信号抑制
+4. 高低阈值链接、获取完整边缘
+5. 输出边缘
+
+```python
+cv2.Canny(src, dst, threshold1, threshold2, apertureSize, L2gradient)
+```
+
+- src：輸入圖，單通道8位元圖。
+- dst：輸出圖，尺寸、型態和輸入圖相同。
+- threshold1：对于任意边缘像素低于TL(低阈值)的则丢弃
+- threshold2：对于任意边缘像素高于TH(高阈值）的则保留
+- apertureSize ：Sobel算子的核心大小。
+- L2gradient ：梯度大小的算法，預設為false。
+
+对于任意边缘像素值在TL与TH之间的，如果能通过边缘连接到一个像素大于
+
+TH而且边缘所有像素大于最小阈值TL的则保留，否则丢弃
+
+Example
+
+```python
+import cv2 as cv
+import numpy as np
+
+
+
+src = cv.imread("face.jpg")
+# cv.namedWindow("input", cv.WINDOW_AUTOSIZE)
+cv.imshow("input", src)
+
+#t1 = 100, t2 = 3*3*t1 = 300
+edge = cv.Canny(src, 100, 300)
+cv.imshow("mask image", edge)
+cv.waitKey()
+cv.destroyAllWindows()
+```
+
+
+
+Result
+
+
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/Canny_result.jpg?raw=true">
 
 
 
@@ -724,7 +985,6 @@ Example :
 rect = cv2.minAreaRect(c) #计算出包围目标的最小矩形区域
     box = cv2.boxPoints(rect) 
     box = np.int0(box) #浮点数转为整数
-
 ```
 
 在图像上画出轮廓:
@@ -752,7 +1012,6 @@ Example:
     center = (int(x), int(y)) #整数
     radius = int(radius)
     img3 = cv2.circle(img3, center, radius, (0, 255, 0), 2) #在图像上画出来
-
 ```
 
 
@@ -796,7 +1055,6 @@ cv2.imshow("edge", edge)
 cv2.imshow("lines", img)
 cv2.waitKey()
 cv2.destroyAllWindows()
-
 ```
 
 
@@ -809,7 +1067,6 @@ cv2.destroyAllWindows()
 
 ```python
 HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None, minRadius=None, maxRadius=None)
-
 ```
 
 - image :8-bit, single-channel, grayscale input image.  image输入必须是8位的单通道灰度图像
@@ -838,7 +1095,6 @@ ret, thresh = cv2.threshold(img, 127, 255, 0)
 cv2.imshow("wow", thresh)
 cv2.waitKey()
 cv2.destroyAllWindows()
-
 ```
 
 ------
@@ -867,7 +1123,6 @@ CV_32FC1   CV_32FC2  CV_32FC3   CV_32FC4
 
 CV_64F   (64 bit 浮点)
 CV_64FC1   CV_64FC2  CV_64FC3  CV_64FC4  
-
 ```
 
 
