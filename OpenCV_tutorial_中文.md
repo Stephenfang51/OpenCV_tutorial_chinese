@@ -1,5 +1,5 @@
 <h1 align = center >OpenCV3 python实践</h1>
-<h4 align = right >update 2019.7.13</h4>
+<h4 align = right >update 2019.7.15</h4>
 
 1. [requirement](#)
 2. [图像阵列算数运算](#)
@@ -29,13 +29,17 @@
     - 二阶导数
       - Laplacian 拉普拉斯 算子
       - Canny 检测
-21. [轮廓检测](#)
+21. [图像金字塔](#)
+    - 高斯图像金字塔
+    - 拉普拉斯图像金字塔
+22. [图像模板匹配/识别](#)
+23. [轮廓检测](#)
     - [方法](#)
-22. [直线检测](#)
+24. [直线检测](#)
     - Hough 霍夫
-23. [图像二值化](#)
-24. [数据结构](#)
-25. [问题解决](#)
+25. [图像二值化](#)
+26. [数据结构](#)
+27. [问题解决](#)
 
 ------
 
@@ -419,6 +423,7 @@ def image_hist(image):
         plt.plot(hist, color=color)
         plt.xlim([0, 256])
     plt.show()    
+
 ```
 
 <img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histogramBGR.png?raw=true" width="400">
@@ -482,6 +487,7 @@ hist2d_demo(x)
 
 cv.waitKey()
 cv.destroyAllWindows()
+
 ```
 
 ------
@@ -510,7 +516,6 @@ r = image[:,:,2]#得到红色通道
   为图像添加椒盐噪声的的步骤如下：
 
   1. 依SNR制作mask，用于判断像素点是原始信号，还是噪声
-
   2. 依mask给原图像赋噪声值
 
   参考博文：https://blog.csdn.net/u011995719/article/details/83375196
@@ -532,6 +537,7 @@ r = image[:,:,2]#得到红色通道
   img = addsalt_pepper(img.transpose(2, 1, 0), 0.9)
   img = img.transpose(2, 1, 0)
   img = cv2.imwrite("spider-man-noise.jpg", img)
+  
   ```
 
 - #### 高斯噪声 （Gaussian）
@@ -556,6 +562,7 @@ r = image[:,:,2]#得到红色通道
   
   cv.waitKey(0)
   cv.destroyAllWindows()
+  
   ```
 
 ------
@@ -577,7 +584,6 @@ r = image[:,:,2]#得到红色通道
 检测图像某区域， 根据像素与周围像素的亮度来提升（boost)
 
 <h3 id=>滤波器 - 低通滤波</h3>
-
 <h4 id=>平均模糊</h4>
 
 用卷积框覆盖区域所有像素的平均值来代替中心元素
@@ -646,6 +652,7 @@ cv.imshow("shape=3x3", dst1)
 cv.waitKey(0)
 cv.destroyAllWindows()
 
+
 ```
 
 <img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/face.png?raw=true">
@@ -660,7 +667,7 @@ cv.destroyAllWindows()
 
 <h3 id=>边缘检测滤波函数</h3>
 
-###  一阶导数类
+### 一阶导数类
 
 #### Sobel 算子
 
@@ -730,6 +737,7 @@ cv.imshow("result", result)
 
 cv.waitKey(0)
 cv.destroyAllWindows()
+
 ```
 
 Result:
@@ -814,6 +822,7 @@ cv.imshow("prewitt_result", prewitt_result)
 
 cv.waitKey(0)
 cv.destroyAllWindows()
+
 ```
 
 
@@ -865,6 +874,7 @@ cv.imshow("result", result)
 
 cv.waitKey()
 cv.destroyAllWindows()
+
 ```
 
 Result
@@ -897,6 +907,7 @@ Canny 边缘检测算法 是 John F. Canny 于 1986年开发出来的一个多�
 
 ```python
 cv2.Canny(src, dst, threshold1, threshold2, apertureSize, L2gradient)
+
 ```
 
 - src：輸入圖，單通道8位元圖。
@@ -927,6 +938,7 @@ edge = cv.Canny(src, 100, 300)
 cv.imshow("mask image", edge)
 cv.waitKey()
 cv.destroyAllWindows()
+
 ```
 
 
@@ -966,7 +978,188 @@ ksize 是滤波核（filter）的宽高， 奇数
 
 
 
+------
 
+<h3 id=>图像金字塔</h3>
+
+#### 高斯图像金字塔
+
+图像金字塔概念
+
+图像金字塔是对一张输入图像先模糊再下采样为原来大小的1/4（宽高缩小一半）、不断重复模糊与下采样的过程就得到了不同分辨率的输出图像，叠加在一起就形成了图像金字塔、所以图像金字塔是图像的空间多分辨率存在形式。这里的模糊是指高斯模糊，所以这个方式生成的金字塔图像又称为高斯金字塔图像。高斯金字塔图像有两个基本操作
+
+- reduce 是从原图生成高斯金字塔图像、生成一系列低分辨图像
+- expand是从高斯金字塔图像反向生成高分辨率图像
+
+规则：
+
+1. 图像金字塔在redude过程或者expand过程中必须是逐层
+2. reduce过程中每一层都是前一层的1/4 (1/2 * 1/2)
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/pyramid.png?raw=true" width=500>
+
+
+
+Example: 
+
+```python
+import cv2 as cv
+
+#expand
+def pyramid_up(pyramid_images):
+    level = len(pyramid_images)
+    print("level = ", level)
+    for i in range(level-1, -1, -1): #step = -1 倒序 range(2, -1, -1) > 倒序循环 2 1 0
+        expand = cv.pyrUp(pyramid_images[i]) #将每一个subample的重新expand
+        cv.imshow("pyramid_up_" + str(i), expand)
+        
+#reduce 以下的定义一个下采样的过程， 图像大小从 1 > 1/4 > 1/8 > 1/16 具体采样多少次可以依照level设定
+def pyramid_down(image, level=3):
+    temp = image.copy()
+    pyramid_images = [] #定义空list，把subsample后的img 放进list
+    for i in range(level): #利用level来定义subsample的层数
+        dst = cv.pyrDown(temp) #执行pyrDown
+        pyramid_images.append(dst) #将subsample后的图放进list
+        temp = dst.copy() #subsample后的目标图copy后 重新丢回for的第一步再一次的subsample
+        cv.imshow("haha", temp)
+    return pyramid_images
+        
+        
+src = cv.imread("face.jpg")
+# cv.imshow("input", src)
+
+# pyramid_down(src)
+pyramid_up(pyramid_down(src))
+
+cv.waitKey(0)
+cv.destroyAllWindows()
+
+```
+
+
+
+#### 拉普拉斯图像金字塔
+
+对输入图像实现金字塔的reduce操作就会生成不同分辨率的图像、对这些图像进行金字塔expand操作，然后使用reduce减去expand之后的结果就会得到图像拉普拉斯金字塔图像。
+
+举例如下：
+    
+
+输入图像G(0)
+
+金字塔reduce操作生成 G(1), G(2), G(3)
+
+拉普拉斯金字塔：
+
+L0 = G(0)-expand(G(1))
+
+L1 = G(1)-expand(G(2))
+
+L2 = G(2)–expand(G(3))
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/laplacian_pyramid.jpg?raw=true">
+
+G(0)减去expand(G(1))得到的结果就是两次高斯模糊输出的不同，所以L0称为DOG（高斯不同）、它约等于LOG所以又称为拉普拉斯金字塔。所以要求的图像的拉普拉斯金字塔，首先要进行金字塔的reduce操作，然后在通过expand操作，最后相减得到拉普拉斯金字塔图像。
+
+Example:
+
+```python
+import cv2 as cv
+import numpy as np
+
+def pyramid_up(image, level=3):
+    temp = image.copy()
+    # cv.imshow("input", image)
+    pyramid_images = []
+    for i in range(level):
+        dst = cv.pyrDown(temp)
+        pyramid_images.append(dst)
+        # cv.imshow("pyramid_up_" + str(i), dst)
+        temp = dst.copy()
+    return pyramid_images
+
+def laplacian_demo(pyramid_images):
+    level = len(pyramid_images)
+    for i in range(level-1, -1, -1):
+        if (i-1) < 0:
+            h, w = src.shape[:2]
+            expand = cv.pyrUp(pyramid_images[i], dstsize=(w, h))
+            lpls = cv.subtract(src, expand) + 127
+            cv.imshow("lpls_" + str(i), lpls)
+        else:
+            h, w = pyramid_images[i-1].shape[:2]
+            expand = cv.pyrUp(pyramid_images[i], dstsize=(w, h))
+            lpls = cv.subtract(pyramid_images[i-1], expand) + 127
+            cv.imshow("lpls_"+str(i), lpls)
+            
+src = cv.imread("face.jpg")
+cv.namedWindow("input", cv.WINDOW_AUTOSIZE)
+cv.imshow("input", src)
+# pyramid_up(src)
+laplacian_demo(pyramid_up(src))
+
+cv.waitKey(0)
+cv.destroyAllWindows()            
+
+```
+
+------
+
+
+
+<h3 id=>图像模板匹配/识别</h3>
+
+简单的来说就是将我们要检测的模板放在原图上对照找到相似的像素
+
+模板就像是卷积核，在原始图上滑动， 模板上的像素值就相当于是权重
+
+```matchTemplate(image, templ, method[, result[, mask]]) -> result   ```
+
+- image  原图
+
+- templ  模板
+
+- method 要计算匹配程度分方式
+
+  CV_TM_SQDIEF：平方差匹配法,最好匹配为0，值越大匹配越差
+
+  CV_TM_SQDIEF_NORMED：归一化平方差匹配法
+
+  CV_TM_CCORR：相关匹配法，采用乘法操作，数值越大表明匹配越好
+
+  CV_TM_CCORR_NORMED：归一化相关匹配法
+
+  CV_TM_CCOEFF：相关系数匹配法，最好匹配为1，最差为-1
+
+  CV_TM_CCOEFF_NORMED：归一化相关系数匹配法
+
+```python
+import cv2 as cv
+import numpy as np
+
+def template_demo():
+    src = cv.imread('llk.jpg')#原图
+    tpl = cv.imread("llk_tpl.png") #模板
+    cv.imshow("input", src)
+    cv.imshow("tpl", tpl)
+    th, tw = tpl.shape[:2] #拿到模板图像大小
+    result = cv.matchTemplate(src, tpl, cv.TM_CCORR_NORMED) #用归一化相关性匹配method
+    
+    cv.imshow("result", result)
+    t = 0.98 #阈值
+    loc = np.where(result > t) #输出大于阈值的
+
+    for pt in zip(*loc[::-1]): #满足条件的绘制出来， 也就是像素匹配的才挑出来
+        cv.rectangle(src, pt, (pt[0] + tw, pt[1] + th), (255, 0, 0), 1, 8, 0)
+    cv.imshow("llk-demo", src)
+
+
+
+template_demo()
+cv.waitKey(0)
+cv.destroyAllWindows()
+
+```
 
 
 
@@ -985,6 +1178,7 @@ Example :
 rect = cv2.minAreaRect(c) #计算出包围目标的最小矩形区域
     box = cv2.boxPoints(rect) 
     box = np.int0(box) #浮点数转为整数
+
 ```
 
 在图像上画出轮廓:
@@ -1012,6 +1206,7 @@ Example:
     center = (int(x), int(y)) #整数
     radius = int(radius)
     img3 = cv2.circle(img3, center, radius, (0, 255, 0), 2) #在图像上画出来
+
 ```
 
 
@@ -1055,6 +1250,7 @@ cv2.imshow("edge", edge)
 cv2.imshow("lines", img)
 cv2.waitKey()
 cv2.destroyAllWindows()
+
 ```
 
 
@@ -1067,6 +1263,7 @@ cv2.destroyAllWindows()
 
 ```python
 HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None, minRadius=None, maxRadius=None)
+
 ```
 
 - image :8-bit, single-channel, grayscale input image.  image输入必须是8位的单通道灰度图像
@@ -1085,17 +1282,112 @@ HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None,
 
 <h3 id=>图像二值化-非黑即白</h3>
 
-使用cv2.threshold(src, 分类阈值, 不合格所赋予的值， 方法) 
+二值图像就是只有黑白两种颜色的图像，0 表示黑色， 1  表示白色(255) 。
+
+常见的二值图像分析包括轮廓分析、对象测量、轮廓匹配与识别、形态学处理与分割、各种形状检测与拟合、投影与逻辑操作、轮廓特征提取与编码等。
+
+#### OpenCV中支持的阈值操作的API如下：
+
+```threshold(src, thresh, maxval, type[, dst]) -> retval, dst```
+
+
+
+- src : 原图 (multiple-channel, 8-bit or 32-bit floating point).
+
+- Thresh: 阈值设定， 以此阈值来进行0 or 255 处理， 一般设定127
+
+- maxval maximum ：最大值 一般设定255
+
+-  type thresholding type ：阈值分割的方式
+
+  - THRESH_BINARY = 0 二值分割
+
+  - THRESH_BINARY_INV = 1 反向二值
+
+  - THRESH_TRUNC = 2 截断
+
+  - THRESH_TOZERO = 3 取零
+
+  - THRESH_TOZERO_INV = 4 反向取零
+
+
 
 Example:
 
+```python
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+
+# THRESH_BINARY = 0
+# THRESH_BINARY_INV = 1
+# THRESH_TRUNC = 2
+# THRESH_TOZERO = 3
+# THRESH_TOZERO_INV = 4
+
+src = cv.imread("face.jpg")
+
+# cv.imshow("input", src)
+
+T = 127
+
+
+gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+images = []
+plt.figure(figsize=(20, 10))
+for i in range(5):
+    ret, binary = cv.threshold(gray, T, 255, i)
+    
+    images.append(binary)
+    plt.subplot(1,5, i+1) 
+    plt.imshow(images[i],'gray')
+    titles = ['BINARY','BINARY_INV','TRUNC','TOZERO','TOZERO_INV']
+    plt.title(titles[i])
+    plt.xticks([]),plt.yticks([])
+
+
+cv.waitKey(0)
+cv.destroyAllWindows()
+
+
+
+
 ```
-img = cv2.imread("lane.jpg", 0)
-ret, thresh = cv2.threshold(img, 127, 255, 0)
-cv2.imshow("wow", thresh)
-cv2.waitKey()
-cv2.destroyAllWindows()
-```
+
+
+
+Result:
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/all_binary.jpg?raw=true">
+
+
+
+
+
+#### 自适应二值化
+
+``` adaptiveThreshold(src, maxValue, adaptiveMethod, thresholdType, blockSize, C[, dst]) -> dst```
+
+- src ：输入灰度图
+
+- maxValue： 一般取255
+
+- adaptiveMethod : 自适应阈值方法，如果基于盒子模糊， 就是C means, 如果基于高斯模糊，就是
+
+- Adaptive Method ：- It decides how thresholding value is calculated.
+
+  1. cv.ADAPTIVE_THRESH_MEAN_C : 阈值是区域内的均值
+  2. cv.ADAPTIVE_THRESH_GAUSSIAN_C : 阈值是加权平均值，权重是区域内的高斯值， 权重随着距离减小
+
+- threshold type： 阈值操作type
+
+- blocksize:实现卷积操作的block大小，必须是奇数（便于中心化），输入图是小图 一般取25就可以
+
+- C ：均值计算之后 减去的常数， 10左右
+
+  
 
 ------
 
@@ -1123,6 +1415,7 @@ CV_32FC1   CV_32FC2  CV_32FC3   CV_32FC4
 
 CV_64F   (64 bit 浮点)
 CV_64FC1   CV_64FC2  CV_64FC3  CV_64FC4  
+
 ```
 
 
