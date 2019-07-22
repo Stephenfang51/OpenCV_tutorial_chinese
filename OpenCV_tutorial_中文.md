@@ -1,21 +1,21 @@
 <h1 align = center >OpenCV3 python实践</h1>
-<h4 align = right >update 2019.7.15</h4>
+<h4 align = right >update 2019.7.22</h4>
 
 1. [requirement](#)
 2. [图像阵列算数运算](#)
-3. [图像Resize与插值法](#)
-4. [图像亮度与对比](#)(待新增)
-5. [图像色彩空间转换](#)
-6. [图像像素统计](#)
-7. [图像的均值及标准差](#) (待新增)
-8. [图像归一化](#)
-9. [ LUT查找表applyColormap](#)
-10. [图像像素点索引](#)
-11. [逻辑运算](#)
-12. [ROI区域操作](#)
-13. [图像直方图统计/均衡化](#)
-14. [直方图反向投影Back projection](#)
-15. [知识点](#)
+3. [BGR/RGB 颜色互转](#)
+4. [图像Resize与插值法](#)
+5. [图像亮度与对比](#)(待新增)
+6. [图像色彩空间转换](#)
+7. [图像像素统计](#)
+8. [图像的均值及标准差](#) (待新增)
+9. [图像归一化](#)
+10. [ LUT查找表applyColormap](#)
+11. [图像像素点索引](#)
+12. [逻辑运算](#)
+13. [ROI区域操作](#)
+14. [图像直方图统计/均衡化](#)
+15. [直方图反向投影Back projection](#)
 16. [噪声](#)
 17. [去噪声](#)
 18. [滤波器](#)
@@ -38,8 +38,12 @@
 24. [直线检测](#)
     - Hough 霍夫
 25. [图像二值化](#)
-26. [数据结构](#)
-27. [问题解决](#)
+26. [二值图像联通组件 ConnectedComponent](#)
+27. [二值图像轮廓检测 FindContour](#)
+    - FindContour
+    - 绘制矩形框住物件
+28. [数据结构](#)
+29. [问题解决](#)
 
 ------
 
@@ -64,6 +68,45 @@
 ```cv2.multiply(src1, src2, dst=None)```
 
 ```cv2.divide(src1, src2, dst=None)```
+
+
+
+------
+
+<h3 id=>BGR/RGB 颜色互转</h3>
+
+imwrite()函数要求图像为BGR or 灰度， 并且每个通道有一的bit
+， 输出格式必须支持
+
+例如 bmp要求通道有8位， png允许8 or 16位元
+
+b = image[:,:,0]#得到蓝色通道
+
+g = image[:,:,1]#得到绿色通道
+
+r = image[:,:,2]#得到红色通道
+
+#### BGR to RGB
+
+OpenCV image to Matplotlib
+
+```python
+rgb = bgr[...,::-1]
+```
+
+#### RGB to BGR
+
+Matplotlib image to OpenCV
+
+```python
+bgr = rgb[...,::-1]
+```
+
+#### RGB to GBR
+
+```python
+gbr = rgb[...,[2,0,1]]
+```
 
 ------
 
@@ -423,7 +466,6 @@ def image_hist(image):
         plt.plot(hist, color=color)
         plt.xlim([0, 256])
     plt.show()    
-
 ```
 
 <img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/histogramBGR.png?raw=true" width="400">
@@ -487,23 +529,11 @@ hist2d_demo(x)
 
 cv.waitKey()
 cv.destroyAllWindows()
-
 ```
 
 ------
 
-<h3 id=>知识点</h3>
-
-imwrite()函数要求图像为BGR or 灰度， 并且每个通道有一的bit
-， 输出格式必须支持
-
-例如 bmp要求通道有8位， png允许8 or 16位元
-
-b = image[:,:,0]#得到蓝色通道
-
-g = image[:,:,1]#得到绿色通道
-
-r = image[:,:,2]#得到红色通道
+<h3 id=>BGR/RGB 互转</h3>
 
 ------
 
@@ -537,7 +567,6 @@ r = image[:,:,2]#得到红色通道
   img = addsalt_pepper(img.transpose(2, 1, 0), 0.9)
   img = img.transpose(2, 1, 0)
   img = cv2.imwrite("spider-man-noise.jpg", img)
-  
   ```
 
 - #### 高斯噪声 （Gaussian）
@@ -562,7 +591,6 @@ r = image[:,:,2]#得到红色通道
   
   cv.waitKey(0)
   cv.destroyAllWindows()
-  
   ```
 
 ------
@@ -652,7 +680,6 @@ cv.imshow("shape=3x3", dst1)
 cv.waitKey(0)
 cv.destroyAllWindows()
 
-
 ```
 
 <img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/face.png?raw=true">
@@ -737,7 +764,6 @@ cv.imshow("result", result)
 
 cv.waitKey(0)
 cv.destroyAllWindows()
-
 ```
 
 Result:
@@ -822,7 +848,6 @@ cv.imshow("prewitt_result", prewitt_result)
 
 cv.waitKey(0)
 cv.destroyAllWindows()
-
 ```
 
 
@@ -874,7 +899,6 @@ cv.imshow("result", result)
 
 cv.waitKey()
 cv.destroyAllWindows()
-
 ```
 
 Result
@@ -907,7 +931,6 @@ Canny 边缘检测算法 是 John F. Canny 于 1986年开发出来的一个多�
 
 ```python
 cv2.Canny(src, dst, threshold1, threshold2, apertureSize, L2gradient)
-
 ```
 
 - src：輸入圖，單通道8位元圖。
@@ -938,7 +961,6 @@ edge = cv.Canny(src, 100, 300)
 cv.imshow("mask image", edge)
 cv.waitKey()
 cv.destroyAllWindows()
-
 ```
 
 
@@ -1033,7 +1055,6 @@ pyramid_up(pyramid_down(src))
 
 cv.waitKey(0)
 cv.destroyAllWindows()
-
 ```
 
 
@@ -1100,7 +1121,6 @@ laplacian_demo(pyramid_up(src))
 
 cv.waitKey(0)
 cv.destroyAllWindows()            
-
 ```
 
 ------
@@ -1158,7 +1178,6 @@ def template_demo():
 template_demo()
 cv.waitKey(0)
 cv.destroyAllWindows()
-
 ```
 
 
@@ -1178,7 +1197,6 @@ Example :
 rect = cv2.minAreaRect(c) #计算出包围目标的最小矩形区域
     box = cv2.boxPoints(rect) 
     box = np.int0(box) #浮点数转为整数
-
 ```
 
 在图像上画出轮廓:
@@ -1206,7 +1224,6 @@ Example:
     center = (int(x), int(y)) #整数
     radius = int(radius)
     img3 = cv2.circle(img3, center, radius, (0, 255, 0), 2) #在图像上画出来
-
 ```
 
 
@@ -1250,7 +1267,6 @@ cv2.imshow("edge", edge)
 cv2.imshow("lines", img)
 cv2.waitKey()
 cv2.destroyAllWindows()
-
 ```
 
 
@@ -1263,7 +1279,6 @@ cv2.destroyAllWindows()
 
 ```python
 HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None, minRadius=None, maxRadius=None)
-
 ```
 
 - image :8-bit, single-channel, grayscale input image.  image输入必须是8位的单通道灰度图像
@@ -1293,21 +1308,13 @@ HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None,
 
 
 - src : 原图 (multiple-channel, 8-bit or 32-bit floating point).
-
 - Thresh: 阈值设定， 以此阈值来进行0 or 255 处理， 一般设定127
-
 - maxval maximum ：最大值 一般设定255
-
--  type thresholding type ：阈值分割的方式
-
+- type thresholding type ：阈值分割的方式
   - THRESH_BINARY = 0 二值分割
-
   - THRESH_BINARY_INV = 1 反向二值
-
   - THRESH_TRUNC = 2 截断
-
   - THRESH_TOZERO = 3 取零
-
   - THRESH_TOZERO_INV = 4 反向取零
 
 
@@ -1353,7 +1360,6 @@ cv.destroyAllWindows()
 
 
 
-
 ```
 
 
@@ -1387,7 +1393,308 @@ Result:
 
 - C ：均值计算之后 减去的常数， 10左右
 
-  
+    
+
+------
+
+
+
+<h3 align = left>二值化联通组件 ConnectedComponent </h3>
+
+#### 联通组件标记算法
+
+扫描一副图像每个像素点，如果都是白色像素的都分为一个组，就是代表相互连通的
+
+`connectedComponents(image，connectivity，ltype)`
+
+- Image : 8int原图
+- connectivity：4 或是 8 的邻域算法
+- ltype：目标图像的深度 一般用CV_32S or CV_16U
+
+
+
+Return : 一组output包含(num_label, 完整图像的array)
+
+
+
+Example：
+
+执行思路：
+
+1. 高斯模糊
+2. 二值化
+3. 利用connectedComponent API 进行label标记
+4. 将标记出的进行上色做出区隔
+
+```python
+def connected_components_demo(src):
+    src = cv.GaussianBlur(src, (3, 3), 0)
+    gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+    ret, binary = cv.threshold(gray, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+    cv.imshow('binary', binary)
+    
+    output = cv.connectedComponents(binary, connectivity=8, ltype=cv.CV_32S)
+    num_labels = output[0] #26个标记
+    labels = output[1] #labels = 完整一副图像数组
+    colors = [] #创造一个空list
+    for i in range(num_labels): #随机创造出bgr颜色
+        b = np.random.randint(0, 256)
+        g = np.random.randint(0, 256)
+        r = np.random.randint(0, 256)
+        colors.append((b, g, r))#将创造出的bgr丢进color list中， 最终遍历26次就会有26个色
+
+    colors[0] = (0, 0, 0)
+    h, w = gray.shape
+    image = np.zeros((h, w, 3), dtype=np.uint8)
+    for row in range(h): #遍历每一个像素点，将刚刚创造出的color 逐像素点上色
+        for col in range(w):
+            image[row, col] = colors[labels[row, col]] #将刚刚创造出的color 逐像素点上色
+
+    cv.imshow("colored labels", image)
+    print("total rice : ", num_labels - 1)
+    
+src = cv.imread('rice.png')
+# cv.imshow('src')
+connected_components_demo(src)
+cv.waitKey()
+cv.destroyAllWindows()
+
+```
+
+该图返回的是带有各种颜色的米粒图
+
+
+
+#### 联通组件状态分析
+
+`connectedComponentsWithStats(image, connectivity, ltype)`
+
+- Image : 8int原图
+- connectivity：4 或是 8 的邻域算法
+- ltype：目标图像的深度 一般用CV_32S or CV_16U
+
+Return : 返回4个值
+
+1. num_labels:标记的数量
+2. labels:整幅图像的array
+3. stats:所有被标记的矩形要素（x, y, w, h) 左上、右下、宽高、label的像素面积
+4. centers:每个被标记的中心点像素
+
+Example:
+
+```python
+def connected_components_stats_demo(src):
+    src = cv.GaussianBlur(src, (3, 3), 0)
+    gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+    ret, binary = cv.threshold(gray, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+#     cv.imshow("binary", binary)
+
+    num_labels, labels, stats, centers = cv.connectedComponentsWithStats(binary, connectivity=8, ltype=cv.CV_32S)
+    colors = []
+    for i in range(num_labels):
+        b = np.random.randint(0, 256)
+        g = np.random.randint(0, 256)
+        r = np.random.randint(0, 256)
+        colors.append((b, g, r))
+
+    colors[0] = (0, 0, 0)
+    image = np.copy(src)
+    for t in range(1, num_labels, 1):
+        x, y, w, h, area = stats[t]
+        cx, cy = centers[t] #取得中心位置的坐标点
+        cv.circle(image, (np.int32(cx), np.int32(cy)), 2, (0, 255, 0), 2, 8, 0) #将中心位置透过circle画出
+        cv.rectangle(image, (x, y), (x+w, y+h), colors[t], 1, 8, 0) #将state提供的xywh画出来
+        cv.putText(image, "num:" + str(t), (x, y), cv.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 255), 1);
+        print("label index %d, area of the label : %d"%(t, area))
+
+#     cv.imshow("colored labels", image)
+    print("total rice : ", num_labels - 1)
+    return binary, image
+
+
+input = cv.imread("rice.png")
+binary, image = connected_components_stats_demo(input)
+
+plt.figure(figsize=(20, 10))
+# plt.imshow(input)
+
+
+
+binary = cv.cvtColor(binary, cv.COLOR_BGR2RGB)
+plt.imshow(binary)
+plt.figure(figsize=(20, 10))
+plt.imshow(image)
+
+
+cv.waitKey(0)
+cv.destroyAllWindows()
+```
+
+
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/rice_connetComp.jpg?raw=true">
+
+------
+
+<h3 align = left> 二值图像轮廓检测FindContour </h3>
+
+<h4 id= align = left> 轮廓检测FindContour </h4>
+
+`findContours(image, mode, method)`
+
+1. image：輸入圖，使用8bit單通道圖，非零的像素都會列入考虑，通常為二值後的圖。
+
+2. mode：取得輪廓的模式。
+
+   - CV_RETR_EXTERNAL：只取最外層的輪廓。
+   - CV_RETR_LIST：取得所有輪廓，不建立階層(hierarchy)。
+   - CV_RETR_CCOMP：取得所有輪廓，儲存成兩層的階層，首階層為物件外圍，第二階層為內部空心部分的輪廓，如果更內部有其餘物件，包含於首階層。
+   - CV_RETR_TREE：取得所有輪廓，以全階層的方式儲存
+
+3. method：儲存輪廓點的方法。
+
+   - CV_CHAIN_APPROX_NONE：儲存所有轮廓点。
+   - CV_CHAIN_APPROX_SIMPLE：对水平、垂直、對角線留下头尾点，假如輪廓為一矩形，只儲存對角的四個頂點
+
+   
+
+`cv.drawContours(image, contours, contourIdx, color[, thickness[, lineType[, hierarchy[, maxLevel[, offset]]`
+
+1. image：输入输出图，输出会将图绘制在此图上
+2. contours：也就是findContours()所找到的contours。
+3. contourIdx：指定绘制某個輪廓
+4. color：绘制的颜色
+5. lineType：线条type
+6. hierarchy：轮廓阶层，也就是findContours()所找到的hierarchy
+7. maxLevel：最大阶层的輪廓，可以指定想要画的輪廓，有輸入hierarchy時才會考慮，輸入的值代表绘制的层数
+
+Example:
+
+执行思路：
+
+1. 原图进行二值化
+2. findContours找出轮廓
+3. 利用找到的contour利用drawContours绘制出轮廓
+
+```python
+def threshold_demo(image):
+    #去噪+二值
+    dst = cv.GaussianBlur(image, (3, 3), 0)
+    gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+    ret, binary = cv.threshold(gray, 0, 255, cv.THRESH_OTSU | cv.THRESH_BINARY)
+    return binary
+
+def canny_demo(image):
+    t = 100
+    canny_output = cv.Canny(image, t, t*2)
+    return canny_output
+
+src = cv.imread('face.jpg')
+# cv.imshow('input', src)
+binary = threshold_demo(src)
+
+contours, hierarchy = cv.findContours(binary, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+for c in range(len(contours)):
+    cv.drawContours(src, contours, c, (0, 0, 255), 2, 8)
+    
+original = cv.imread('face.jpg')
+original = original[...,::-1]
+src = src[...,::-1]
+# original = cv.cvtColor(original, cv.COLOR_BGR2RGB)
+# src = cv.cvtColor(src, cv.COLOR_BGR2RGB)
+plt.figure(figsize=(20, 10))
+plt.subplot(1, 2, 1)
+plt.imshow(original)
+plt.subplot(1, 2, 2)
+plt.imshow(src)
+cv.waitKey(0)
+cv.destroyAllWindows()
+```
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/findContour.jpg?raw=true">
+
+<h4 id= align = left> 绘制矩形框住物件 </h4>
+
+當得到物件輪廓後，可以用以下三种方式将物件框住
+
+- boundingRect() : 框住此轮廓的最小正矩形
+- minAreaRect() : 框住此轮廓的最小斜矩形
+  - 返回值:( center (x,y), (width, height), angle of rotation )
+- minEnclosingCircle(): 框住此轮廓的最小圓形，
+
+這些函数让我們填補空隙，或者作進一步的物件辨識
+
+`cv.morphologyEx(src, op, kernel)`
+该函数执行形态学转换， 通常使用在二值图
+It needs two inputs, one is our original image, second one is called structuring element or kernel
+
+最基本的两个形态转换就是腐蚀Erosion 跟膨胀Dilation
+
+下面的例子就是利用3*3的kernel执行膨胀操作
+
+
+
+Example:
+
+执行思路：
+
+1. 将原图Canny 找出边缘并且morphology膨胀
+2. 在用findContours找出轮廓
+3. 在看利用何种方式将轮廓给框住
+
+
+
+```python
+def canny_demo(image):
+    t = 200
+    canny_output = cv.Canny(image, t, t * 2)
+#     cv.imshow("canny_output", canny_output)
+#     cv.imwrite("D:/canny_output.png", canny_output)
+    return canny_output
+
+
+src = cv.imread("stuff.jpg")
+# cv.namedWindow("input", cv.WINDOW_AUTOSIZE)
+# cv.imshow("input", src)
+binary = canny_demo(src)
+k = np.ones((3, 3), dtype=np.uint8)#弄一个3 by 3 kernel
+binary = cv.morphologyEx(binary, cv.MORPH_DILATE, k)
+cv.imshow('binary', binary)
+
+# 轮廓发现
+contours, hierarchy = cv.findContours(binary, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+for c in range(len(contours)):
+#     x, y, w, h = cv.boundingRect(contours[c]);
+#     cv.drawContours(src, contours, c, (0, 0, 255), 2, 8)
+#     cv.rectangle(src, (x, y), (x+w, y+h), (0, 0, 255), 1, 8, 0);
+    rect = cv.minAreaRect(contours[c]) #将取得的contours 用遍历的方式把每一个center x, y 都取出
+    cx, cy = rect[0]
+    box = cv.boxPoints(rect)
+    box = np.int64(box)
+    cv.drawContours(src,[box],0,(0,0,255),2)
+    cv.circle(src, (np.int32(cx), np.int32(cy)), 2, (255, 0, 0), 2, 8, 0)
+
+
+# 显示
+# cv.imshow("contours_analysis", src)
+# cv.imwrite("D:/contours_analysis.png", src)
+
+src = src[...,::-1]
+plt.figure(figsize=(20, 10))
+plt.imshow(src)
+
+cv.waitKey(0)
+cv.destroyAllWindows()
+
+
+
+```
+
+
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/minAreaRect.jpg?raw=true">
+
+
 
 ------
 
@@ -1415,7 +1722,6 @@ CV_32FC1   CV_32FC2  CV_32FC3   CV_32FC4
 
 CV_64F   (64 bit 浮点)
 CV_64FC1   CV_64FC2  CV_64FC3  CV_64FC4  
-
 ```
 
 
@@ -1425,14 +1731,3 @@ CV_64FC1   CV_64FC2  CV_64FC3  CV_64FC4
 ------
 
 <h3 align = center> 问题解决 </h3>
-
-1. 问题一
-
-FindContours support only 8uC1 and 32sC1 images in function cvStartFindContours
-
-只支持 single channel, unit8
-
-1. 解决
-   输入findContours函数之前， 先将图像进行转换成unit8, channel = 1的
-
-```cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)```
