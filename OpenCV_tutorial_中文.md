@@ -1,5 +1,5 @@
 <h1 align = center >OpenCV3 python实践</h1>
-<h4 align = right >update 2019.7.22</h4>
+<h4 align = right >update 2019.7.29</h4>
 
 1. [requirement](#)
 2. [图像阵列算数运算](#)
@@ -35,15 +35,18 @@
 22. [图像模板匹配/识别](#)
 23. [轮廓检测](#)
     - [方法](#)
-24. [直线检测](#)
-    - Hough 霍夫
-25. [图像二值化](#)
-26. [二值图像联通组件 ConnectedComponent](#)
-27. [二值图像轮廓检测 FindContour](#)
+24. [图像二值化](#)
+25. [二值图像联通组件 ConnectedComponent](#)
+26. [二值图像轮廓检测 FindContour](#)
     - FindContour
     - 绘制矩形框住物件
-28. [数据结构](#)
-29. [问题解决](#)
+27. [二值图像 矩阵面积与周长](#)
+28. [图像几何矩(image moments)](#)
+    - Moments
+    - HuMoments
+29. [二值图像 霍夫变幻/检测](#)
+30. [数据结构](#)
+31. [问题解决](#)
 
 ------
 
@@ -1230,71 +1233,6 @@ Example:
 
 ------
 
-<h3 id=> 直线检测 - Hough</h3>
-
-1. HoughLines
-2. HoughLinesP(img, rho, theta, minLineLength, maxLineGap)
-
-- dst:    输出图像. 它应该是个灰度图 (但事实上是个二值化图) 
-- rho :   参数极径 r 以像素值为单位的分辨率. 我们使用 1 像素.
-- theta:  参数极角 \theta 以弧度为单位的分辨率. 我们使用 1度 (即CV_PI/180)
-- threshold:    设置阈值： 一条直线所需最少的的曲线交点。超过设定阈值才被检测出线段，值越大，基本上意味着检出的线段越长，检出的线段个数越少。
-- minLinLength: 能组成一条直线的最少点的数量. 点数量不足的直线将被抛弃.
-- maxLineGap:   能被认为在一条直线上的两点的最大距离。
-
-
-
-Example：
-
-
-
-```python
-img = cv2.imread("lane.jpg")
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-edge = cv2.Canny(gray, 50, 120)
-
-minLineLength = 20
-maxLineGap = 5
-lines = cv2.HoughLinesP(edge, 
-                        1, np.pi/180, 
-                        100, 
-                        minLineLength, maxLineGap)
-
-for x1, y1, x2, y2 in lines[0]:
-    cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-cv2.imshow("edge", edge)
-cv2.imshow("lines", img)
-cv2.waitKey()
-cv2.destroyAllWindows()
-```
-
-
-
-<h3 id=> 圓检测 - Hough</h3>
-
-用到的是HoughCircles 這個方法
-
-跟直線類似，有一個圓心間的最小距離和圓的最小及最大半徑
-
-```python
-HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None, minRadius=None, maxRadius=None)
-```
-
-- image :8-bit, single-channel, grayscale input image.  image输入必须是8位的单通道灰度图像
-- method: 目前只有HOUGH_GRADIENT,也就是2-1霍夫变换
-- dp: 原图像和累加器juzh矩阵的像素比 一般设为1就可以了
-- minDist: 圆心center中圆心之间的最小圆心距 如果小于此值,则认为两个是同一个圆(此时抛弃该圆心点,防止圆过于重合)
-- circles: Output vector of found circles.Each vector is encoded as 3 or 4 element circle也就是我们最后圆的结果集
-- param1 canny双阈值边缘检测的高阈值,经查阅一般低阈值位高阈值的0.4或者0.5
-- param2 在确定圆心时 圆周点的梯度的累加器投票数ddata以及在确定半径时相同圆心相同半径的圆的个数max_count必须大于此阈值才认为是合法的圆心和半径
-- minRadius 最小的半径 如果过小可能会因为噪音导致找到许多杂乱无章的圆,过大会找不到圆
-- minRadius 最大的半径 如果过小可能会找不到圆,过大会找很多杂乱无章的圆
-
-
-
-------
-
 <h3 id=>图像二值化-非黑即白</h3>
 
 二值图像就是只有黑白两种颜色的图像，0 表示黑色， 1  表示白色(255) 。
@@ -1558,6 +1496,12 @@ cv.destroyAllWindows()
 
    
 
+   返回：contours, hierarchy
+
+   contours 会是一个列表， 列表中存储的是array的形式
+
+   
+
 `cv.drawContours(image, contours, contourIdx, color[, thickness[, lineType[, hierarchy[, maxLevel[, offset]]`
 
 1. image：输入输出图，输出会将图绘制在此图上
@@ -1694,6 +1638,453 @@ cv.destroyAllWindows()
 
 <img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/minAreaRect.jpg?raw=true">
 
+------
+
+<h3 align = left> 二值图像矩阵面积与周长 </h3>
+
+利用findContour找出物体的轮廓之后， 能利用`contourArea`, `arcLength`，來找轮廓的質心、周長、面积，
+
+#### 计算面积
+
+`cv.contourArea(contour, oriented)`:
+
+- contour：输入的轮廓
+- oriented：轮廓方向，如果設為ture的話除了面积還會記錄方向，顺时针和逆时针會有正負号的差異，預設為false，不論轮廓方向都返回正的面积值
+
+
+
+### 计算周长（弧长）
+
+`cv.arcLength(curve, closed)`:
+
+- curve：输入轮廓，一個含有2維點的vector。
+- closed：轮廓封閉，指定curve是否封閉，true or False
+
+Example：
+
+执行思路：
+
+1. Canny检测二值化
+2. 利用morphologyEx形态学膨胀将二值图处理一下
+3. findContour 找出目标轮廓
+4. 求出面积与周长当做阈值筛选目标
+5. 绘制目标物矩形与中心点
+
+```python
+import cv2 as cv
+import numpy as np
+
+def canny_demo(image):
+    t = 80
+    canny_output = cv.Canny(image, t, t*2)
+    cv.imshow('canny_output', canny_output)
+    return canny_output
+
+src = cv.imread('zhifangqiu.jpg')
+cv.imshow('src', src)
+binary = canny_demo(src)
+k = np.ones((3, 3), dtype=np.uint8)
+binary = cv.morphologyEx(binary, cv.MORPH_DILATE, k)
+
+
+
+'''轮廓发现'''
+contours, hierarchy = cv.findContours(binary, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+for c in range(len(contours)):
+    area = cv.contourArea(contours[c])
+    arclen = cv.arcLength(contours[c], True) #求出弧长
+    if area < 100 or arclen < 100:#表示如果小于100, 就继续 不绘制， 过滤最小面积
+        continue
+#     if area > 100 or arclen > 100 :
+
+
+    #由上面的周长以及面积来当做阈值， 如果小于100的 就不会是我们要找的对象
+    rect = cv.minAreaRect(contours[c]) #将目标物的矩形框找出来
+    cx, cy = rect[0] #去除矩形正中心点
+    box = cv.boxPoints(rect)
+    box = np.int0(box) #记得转换
+    cv.drawContours(src, [box], 0, (0, 0, 255), 2) #将矩形绘制出来
+    cv.circle(src, (np.int32(cx), np.int32(cy)), 2, (255, 0, 0), 2, 8, 0)#将矩形中心点绘制出来
+
+
+cv.imshow('contours_analysis', src)
+cv.waitKey()
+cv.destroyAllWindows()
+
+```
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/detect_fatball.jpg?raw=true">
+
+------
+
+<h3 align = left> 图像几何矩 ImageMoments </h3>
+
+
+
+### moments
+
+对图像二值图像的每个轮廓，可以计算轮廓几何矩，根据几何矩可以计算图像的中心位置，估计得到中心位置可以计算中心矩、然后再根据中心矩可以计算Hu矩。
+
+```cv.moment(InputArray array, bool binaryImage=false)```
+
+返回的是 mu
+这个mu 包含了m10, m01, m00
+m10 表示x
+m01 表示y
+m00 表示area
+
+
+
+For image with pixel intensities I(x,y), the raw image moments 𝑀𝑖𝑗 are calculated by
+
+𝑀𝑖𝑗=∑𝑥∑𝑦𝐼(𝑥,𝑦)
+
+
+
+关于moments可以用物理学的角度来看，假设图像上的每个像素有重量， 那么这个重量等同于本身的强度，假设I(x,y)是图像中像素(x,y)的强度.那么m(i,j)是所有可能的x和y的和：I(x,y)*(x ^ i)*(y ^ j).
+
+Moments 总和了image的shape用：
+I(x, y)
+
+𝑀𝑖𝑗=∑𝑥∑𝑦𝐼(𝑥,𝑦)
+i+j 是n阶距
+
+因为可以用物理学来看，那么centroid表示的也就是这个物件的重心 （mass center）
+那么如果要找出重心坐标 公式会是：
+
+
+
+x、y坐标总和/所有 就是中心位置
+
+$C_x = \frac{M10}{M00}$
+
+$C_y = \frac{M01}{M00}$
+
+Example：
+
+执行思路：
+
+1. 经过canny二值化
+2. morphologyEX 膨胀处理
+3. findContour 找到轮廓
+4. 遍历轮廓，minAreaRect 取得最小矩形
+5. 取得矩形中心x, y, width, height
+6. 找出最小与最大的宽高比
+7. 利用moments 找到mm
+8. 利用mm求出centroid
+9. cv.boxPoint求出box, 并转成 int8
+10. 绘制
+
+```python
+import cv2 as cv
+import numpy as np
+
+def canny_demo(image):
+    t = 80
+    canny_output = cv.Canny(image, t, t * 2)
+    cv.imshow('canny_output', canny_output)
+    return canny_output
+
+src = cv.imread('stuff2.jpg')
+cv.imshow('input', src)
+binary = canny_demo(src)
+k = np.ones((3, 3), dtype=np.uint8)
+binary = cv.morphologyEx(binary, cv.MORPH_DILATE, k)
+
+
+contours, hierarchy = cv.findContours(binary, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+for c in range(len(contours)):
+    rect = cv.minAreaRect(contours[c])
+    cx, cy = rect[0]
+    ww, hh = rect[1]
+    ratio = np.minimum(ww, hh)/np.maximum(ww, hh)
+    print(ratio) #求出最小与最大的比例
+    
+    mm = cv.moments(contours[c])
+    m00 = mm['m00']
+    m10 = mm['m10']
+    m01 = mm['m01']
+    cx = np.int(m10/m00)
+    cy = np.int(m01/m00)
+    box = cv.boxPoints(rect)
+    box = np.int0(box)
+    if ratio > 0.9 :
+        cv.drawContours(src, [box], 0, (0, 0, 255), 2)
+        cv.circle(src, (np.int32(cx), np.int32(cy)), 2, (255, 0, 0), 2, 8, 0)
+    if ratio < 0.4:
+        cv.drawContours(src, [box], 0, (255, 0, 255), 2)
+        cv.circle(src, (np.int32(cx), np.int32(cy)), 2, (0, 0, 255), 2, 8, 0)
+        
+cv.imshow('contours_analysis', src)
+cv.waitKey()
+cv.destroyAllWindows()
+```
+
+
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/moments.jpg?raw=true">
+
+
+
+### HuMoments
+
+
+对图像二值图像的每个轮廓，可以计算轮廓几何矩，根据几何矩可以计算图像的中心位置，估计得到中心位置可以计算中心矩、然后再根据中心矩可以计算胡矩·
+
+array是输入的图像轮廓点集合
+输出的图像几何矩，根据几何矩输出结果可以计算胡矩，胡矩计算的API如下：
+`cv.HuMoments(mm)`
+
+`matchShapes(contour1, contour2, method, parameter)`
+可以从contour1， contour2来比较两个形状，返回一个matirc展示相似度，result的值越低表示表示相似度越高，这是基于Hu-moment的值来计算
+
+Example:
+
+执行思路:
+
+- 找到原图A(被匹配的）以及一张要负责匹配的图B
+- findContours 找到两张图的轮廓（输入之前必须转灰度）
+- 图B 透过Moments 找到mm（几何矩）, 丢进HuMoments计算出Hu矩
+- 遍历的方式将原图A的找到的轮廓都算出HuMoments(按照上一步的方式）
+- 调用API matchShape来进行contour1, contour2来匹配hum1, hum2的比对，值越小越相似
+- 可以设定阈值，例如dist < 0.5 就drawContours
+
+```python
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+
+def contours_info(image):
+    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+    ret, binary = cv.threshold(gray, 0, 255, cv.THRESH_BINARY | cv.THRESH_OTSU)
+    contours, hierarchy = cv.findContours(binary, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    return contours
+
+
+src = cv.imread("carnumber.jpg")
+# result = src.copy()
+# cv.namedWindow("input1", cv.WINDOW_AUTOSIZE)
+# cv.imshow("input1", src)
+# plt.imread(src)
+msrc = src[...,::-1]
+plt.figure(1)
+plt.figure(figsize=[10, 10])
+plt.subplot(1, 2, 1)
+plt.imshow(msrc)
+src2 = cv.imread("carnumber5.jpg")
+# result2 = src2.copy()
+# cv.imshow("input2", src2)
+msrc2 = src2[...,::-1]
+
+plt.subplot(1, 2, 2)
+plt.imshow(msrc2)
+
+
+
+
+
+# 轮廓发现
+contours1 = contours_info(src)
+contours2 = contours_info(src2) 
+
+# 几何矩计算与hu矩计算
+mm2 = cv.moments(contours2[0])#计算与匹配的moments
+hum2 = cv.HuMoments(mm2) #计算出Hu矩
+
+# 轮廓匹配
+for c in range(len(contours1)):
+    mm = cv.moments(contours1[c]) #求出每一个目标轮廓的mm
+    hum = cv.HuMoments(mm)#求出hu矩
+    dist = cv.matchShapes(hum, hum2, cv.CONTOURS_MATCH_I1, 0)#用Hu-moments计算相似度， 值越小代表越高
+    if dist < 0.5: #设定阈值，
+        cv.drawContours(src, contours1, c, (0, 0, 255), 2, 8)
+        
+        
+
+src = cv.cvtColor(src, cv.COLOR_BGR2RGB)
+plt.figure(figsize=[10, 10])
+plt.figure(3)
+plt.imshow(src)
+
+cv.waitKey(0)
+cv.destroyAllWindows()
+```
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/Hu_moments.jpg?raw=true">
+
+------
+
+
+
+------
+
+<h3 id=> 二值图像分析 - 霍夫变化/检测</h3>
+
+### HoughLines
+
+霍夫的原理解释篇幅很长， 这边只介绍API参数及使用实例
+
+参考知乎
+
+https://www.zhihu.com/question/35268803/answer/82100453
+
+
+
+`cv.HoughLines(
+	image,
+	lines,
+	rho,
+	theta,
+	threshold,
+	srn = 0,
+	stn = 0,
+	min_theta = 0,
+	max_theta = CV_PI
+)`
+
+- Image 输入图像
+- Lines 输出直线
+- Rho 极坐标r得步长
+- Theta角度步长
+- Threshold累加器阈值
+- Srn、stn多尺度霍夫变换时候需要得参数，经典霍夫变换不需要
+- min_theta 最小角度
+- max_theta最大角度
+
+返回 共线的rho， theta
+
+
+
+Houghline的执行过程
+
+1. 使用边缘检测算法（如canny算子）得到边缘检测的二值图像
+2. 扫描整个图像的前景点（边缘点），遍历整个Theta的范围得出对应的Rho值，并在对应的累加器单元加1，主要进行范围的调整
+3. 寻找累加器中最大值(出现频率最多的)
+4. 结合所给阈值算出判断累加器共线的最小值阈值
+5. 非极大值抑制
+6. 得到共线的（Theta，Rho），还原到直角坐标系，并在图像显示 
+
+
+
+Example：
+
+执行思路
+
+1. 利用canny检测取得边缘二值图像
+2. 调用HoughLines取得线段Lines 包含
+3. 遍历的方式取出每一个Line的tho, theta
+4. a = np.cos(theta), b = np.sin(theta)
+5. X0 = a*rho
+6. Y0 = b*rho
+7. 求出pt1, pt2坐标
+8. 绘制直线
+
+
+
+```python
+import cv2 as cv
+import numpy as np
+
+def canny_demo(image):
+    t = 80
+    canny_output = cv.Canny(image, t, t*2)
+    return canny_output
+
+src = cv.imread('numbersarray.jpg')
+
+binary = canny_demo(src)
+lines = cv.HoughLines(binary, 1, np.pi / 180, 150, None, 0, 0)
+if lines is not None:
+    for i in range(0, len(lines)):
+        rho = lines[i][0][0]
+        theta = lines[i][0][1]
+        a = np.cos(theta)
+        b = np.sin(theta)
+        x0 = a* rho
+        y0 = b*rho
+        pt1 = (int(x0+1000 * (-b)), int(y0+1000*(a))) #pt1 表示直线起始坐标1000是为了将线段加长 
+        pt2 = (int(x0-1000 * (-b)), int(y0 - 1000*(a))) # 终点坐标
+        
+        cv.line(src, pt1, pt2, (0, 0, 255), 3, cv.LINE_AA)
+        
+cv.imshow('houghline', src)
+cv.waitKey()
+cv.destroyAllWindows()
+
+
+```
+
+
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/houghline.png?raw=true">
+
+
+
+### HoughLinesP
+
+`cv.HoughLinesP(img, rho, theta, minLineLength, maxLineGap)`
+
+- dst:    输出图像. 它应该是个灰度图 (但事实上是个二值化图) 
+- rho :   参数极径 r 以像素值为单位的分辨率. 我们使用 1 像素.
+- theta:  参数极角 \theta 以弧度为单位的分辨率. 我们使用 1度 (即CV_PI/180)
+- threshold:    设置阈值： 一条直线所需最少的的曲线交点。超过设定阈值才被检测出线段，值越大，基本上意味着检出的线段越长，检出的线段个数越少。
+- minLinLength: 能组成一条直线的最少点的数量. 点数量不足的直线将被抛弃.
+- maxLineGap:   能被认为在一条直线上的两点的最大距离。
+
+
+
+Example：
+
+
+
+```python
+img = cv2.imread("lane.jpg")
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+edge = cv2.Canny(gray, 50, 120)
+
+minLineLength = 20
+maxLineGap = 5
+lines = cv2.HoughLinesP(edge, 
+                        1, np.pi/180, 
+                        100, 
+                        minLineLength, maxLineGap)
+
+for x1, y1, x2, y2 in lines[0]:
+    cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+cv2.imshow("edge", edge)
+cv2.imshow("lines", img)
+cv2.waitKey()
+cv2.destroyAllWindows()
+```
+
+
+
+<h3 id=> 圓检测 - Hough</h3>
+
+用到的是HoughCircles 這個方法
+
+跟直線類似，有一個圓心間的最小距離和圓的最小及最大半徑
+
+```python
+HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None, minRadius=None, maxRadius=None)
+```
+
+- image :8-bit, single-channel, grayscale input image.  image输入必须是8位的单通道灰度图像
+- method: 目前只有HOUGH_GRADIENT,也就是2-1霍夫变换
+- dp: 原图像和累加器juzh矩阵的像素比 一般设为1就可以了
+- minDist: 圆心center中圆心之间的最小圆心距 如果小于此值,则认为两个是同一个圆(此时抛弃该圆心点,防止圆过于重合)
+- circles: Output vector of found circles.Each vector is encoded as 3 or 4 element circle也就是我们最后圆的结果集
+- param1 canny双阈值边缘检测的高阈值,经查阅一般低阈值位高阈值的0.4或者0.5
+- param2 在确定圆心时 圆周点的梯度的累加器投票数ddata以及在确定半径时相同圆心相同半径的圆的个数max_count必须大于此阈值才认为是合法的圆心和半径
+- minRadius 最小的半径 如果过小可能会因为噪音导致找到许多杂乱无章的圆,过大会找不到圆
+- minRadius 最大的半径 如果过小可能会找不到圆,过大会找很多杂乱无章的圆
+
+
+
+
+
 
 
 ------
@@ -1731,3 +2122,14 @@ CV_64FC1   CV_64FC2  CV_64FC3  CV_64FC4
 ------
 
 <h3 align = center> 问题解决 </h3>
+
+1. 问题一
+
+FindContours support only 8uC1 and 32sC1 images in function cvStartFindContours
+
+只支持 single channel, unit8
+
+1. 解决
+   输入findContours函数之前， 先将图像进行转换成unit8, channel = 1的
+
+```cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)```
