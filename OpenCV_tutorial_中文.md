@@ -1,52 +1,99 @@
 <h1 align = center >OpenCV3 python实践</h1>
-<h4 align = right >update 2019.7.29</h4>
+<h4 align = right >update 2019.8.6</h4>
 
 1. [requirement](#)
+
 2. [图像阵列算数运算](#)
+
 3. [BGR/RGB 颜色互转](#)
+
 4. [图像Resize与插值法](#)
+
 5. [图像亮度与对比](#)(待新增)
+
 6. [图像色彩空间转换](#)
+
 7. [图像像素统计](#)
+
 8. [图像的均值及标准差](#) (待新增)
+
 9. [图像归一化](#)
+
 10. [ LUT查找表applyColormap](#)
+
 11. [图像像素点索引](#)
+
 12. [逻辑运算](#)
+
 13. [ROI区域操作](#)
+
 14. [图像直方图统计/均衡化](#)
+
 15. [直方图反向投影Back projection](#)
+
 16. [噪声](#)
+
 17. [去噪声](#)
+
 18. [滤波器](#)
+
     - 高通滤波(HBF)
     - 低通滤波(LPF)
+
 19. [图像积分图算法](#) （待新增）
+
 20. [边缘检测](#)
+
     - 一阶导数
       - Sobel 算子
       - Rober / Prewitt 算子
     - 二阶导数
       - Laplacian 拉普拉斯 算子
       - Canny 检测
+
 21. [图像金字塔](#)
+
     - 高斯图像金字塔
     - 拉普拉斯图像金字塔
+
 22. [图像模板匹配/识别](#)
+
 23. [轮廓检测](#)
+
     - [方法](#)
+
 24. [图像二值化](#)
+
 25. [二值图像联通组件 ConnectedComponent](#)
+
 26. [二值图像轮廓检测 FindContour](#)
+
     - FindContour
     - 绘制矩形框住物件
+
 27. [二值图像 矩阵面积与周长](#)
+
 28. [图像几何矩(image moments)](#)
+
     - Moments
     - HuMoments
+
 29. [二值图像 霍夫变幻/检测](#)
-30. [数据结构](#)
-31. [问题解决](#)
+
+    - 霍夫直线 houghlines
+    - 霍夫圆 houghcircle
+
+30. [图像形态学 侵蚀与膨胀dilate and erode](#)
+
+    - 侵蚀与膨胀 dilate and erode
+
+    - 开操作 Opening
+
+31. [数据结构](#)
+
+32. [知识点](#)
+
+33. [问题解决](#)
 
 ------
 
@@ -89,20 +136,16 @@ g = image[:,:,1]#得到绿色通道
 
 r = image[:,:,2]#得到红色通道
 
-#### BGR to RGB
+#### BGR / RGB 互转
 
-OpenCV image to Matplotlib
-
-```python
-rgb = bgr[...,::-1]
-```
-
-#### RGB to BGR
-
-Matplotlib image to OpenCV
+example：
 
 ```python
+#method 1: openCV 读取格式为HWC
 bgr = rgb[...,::-1]
+
+#method 2
+rgb = bgr[:, :, ::-1]
 ```
 
 #### RGB to GBR
@@ -1475,7 +1518,6 @@ cv.destroyAllWindows()
 ------
 
 <h3 align = left> 二值图像轮廓检测FindContour </h3>
-
 <h4 id= align = left> 轮廓检测FindContour </h4>
 
 `findContours(image, mode, method)`
@@ -1720,8 +1762,6 @@ cv.destroyAllWindows()
 
 <h3 align = left> 图像几何矩 ImageMoments </h3>
 
-
-
 ### moments
 
 对图像二值图像的每个轮廓，可以计算轮廓几何矩，根据几何矩可以计算图像的中心位置，估计得到中心位置可以计算中心矩、然后再根据中心矩可以计算Hu矩。
@@ -1828,7 +1868,6 @@ cv.destroyAllWindows()
 
 
 ### HuMoments
-
 
 对图像二值图像的每个轮廓，可以计算轮廓几何矩，根据几何矩可以计算图像的中心位置，估计得到中心位置可以计算中心矩、然后再根据中心矩可以计算胡矩·
 
@@ -2063,23 +2102,200 @@ cv2.destroyAllWindows()
 
 <h3 id=> 圓检测 - Hough</h3>
 
-用到的是HoughCircles 這個方法
+二值图像分析 – 霍夫圆检测
+根据极坐标,圆上任意一点的坐标可以表示为如上形式, 所以对于任意一个圆, 假设中心像素点p(x0, y0)像素点已知, 圆半径已知,则旋转360由极坐标方程可以得到每个点上得坐标同样,如果只是知道图像上像素点, 圆半径,旋转360°则中心点处的坐标值必定最强.这正是霍夫变换检测圆的数学原理
 
-跟直線類似，有一個圓心間的最小距離和圓的最小及最大半徑
+`cv2.HoughCircles(image, 
+method, 
+dp, 
+minDist, 如果设为0， 就会检测出很多通讯员， 如果是10表示两个同心圆距离是10才可以，小于10认为是同个圆，
+circles=None, 
+param1=None, 
+param2=None, 累加到一定程度才能算圆，所以越小检测到圆越多
+minRadius=None, 
+maxRadius=None)`
+
+- image: 单通道图像8位。如果使用彩色图像，需要先转换为灰度图像。
+- method：定义检测图像中圆的方法。目前唯一实现的方法是cv2.HOUGH_GRADIENT。
+- dp：累加器分辨率与图像分辨率的反比。dp获取越大，累加器数组越小。 一般取2以上  
+- minDist：检测到的圆的中心，（x,y）坐标之间的最小距离。如果minDist太小，则可能导致检测到多个相邻的圆。如果minDist太大，则可能导致很多圆检测不到。最小必须是10，
+- param1：用于处理边缘检测的梯度值方法。 边缘提取的高阈值
+- param2：cv2.HOUGH_GRADIENT方法的累加器阈值。阈值越小，检测到的圈子越多。
+- minRadius：半径的最小大小（以像素为单位）。
+- maxRadius：半径的最大大小（以像素为单位）。
+
+Example:
 
 ```python
-HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None, minRadius=None, maxRadius=None)
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+src = cv.imread("coin.jpg")
+plt.figure(figsize=[15, 15])
+plt.subplot(131)
+plt.imshow(src)
+canny = cv.Canny(src, 200, 300)
+plt.subplot(132)
+plt.imshow(canny)
+dp = 2 #与原图大小相比，2比较常用
+param1 = 100
+param2 = 90
+
+
+show_circle = src
+circles = cv.HoughCircles(canny, cv.HOUGH_GRADIENT, dp, 80, None, param1, param2, 30, 100)
+if circles is not None:
+    for c in circles[0,:]:
+        print(c)
+        cx, cy, r = c
+        cv.circle(show_circle, (cx, cy), 2, (0, 255, 0), 10, 8, 0)
+        cv.circle(show_circle, (cx, cy), r, (0, 0, 255), 5, 8, 0)
+
+
+plt.subplot(133)
+plt.imshow(show_circle[:, :, ::-1])
+cv.waitKey(0)
+cv.destroyAllWindows()
+
+
 ```
 
-- image :8-bit, single-channel, grayscale input image.  image输入必须是8位的单通道灰度图像
-- method: 目前只有HOUGH_GRADIENT,也就是2-1霍夫变换
-- dp: 原图像和累加器juzh矩阵的像素比 一般设为1就可以了
-- minDist: 圆心center中圆心之间的最小圆心距 如果小于此值,则认为两个是同一个圆(此时抛弃该圆心点,防止圆过于重合)
-- circles: Output vector of found circles.Each vector is encoded as 3 or 4 element circle也就是我们最后圆的结果集
-- param1 canny双阈值边缘检测的高阈值,经查阅一般低阈值位高阈值的0.4或者0.5
-- param2 在确定圆心时 圆周点的梯度的累加器投票数ddata以及在确定半径时相同圆心相同半径的圆的个数max_count必须大于此阈值才认为是合法的圆心和半径
-- minRadius 最小的半径 如果过小可能会因为噪音导致找到许多杂乱无章的圆,过大会找不到圆
-- minRadius 最大的半径 如果过小可能会找不到圆,过大会找很多杂乱无章的圆
+
+
+## <img src = "https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/houghcircle.jpg?raw=true">
+
+<h3 id=> 图像形态学 侵蚀与膨胀dilate and erode </h3>
+
+#### dilate and erode
+
+形态学主要用于二值化后的影像，根据使用者的目的，用来凸显影像的形状特征，像边界和连通区域等，同时像细化，像素化，修剪毛刺等技术也常用于图像的预处理和后处理，形态学操作的结果除了影像本身，也和结构元素的形状有关，结构元素和空间域操作的滤波概念类似，如以下即为一个3×3的结构元素，我们可以自行决定大小和形状，在实际的使用上，是以奇数的矩形如3×3,5×5,7×7较常见。
+
+1.膨胀可以看成是最大值滤波，即用最大值替换中心像素点
+2.腐蚀可以看出是最小值滤波，即用最小值替换中心像素点。
+
+#### 腐蝕
+
+腐蝕顾名思义就是消融物体的边界，如果物体大于结构元素，侵蚀的结果是让物体瘦一圈，而这一圈的宽度是由结构元素大小决定的，如果物体小于结构元素，则侵蚀后物体会消失，如果物体之间有小于结构元素的细小连通，侵蚀后会分裂成两个物体
+
+`cv2.erode(src, kernel, anchor, iterations `
+
+`cv2.dilate(src, kernel, anchor, iterations`
+
+- src：輸入圖，可以多通道，深度可為CV_8U、CV_16U、CV_16S、CV_32F或CV_64F。
+- kernel：結構元素，如果kernel=Mat()則為預設的3×3矩形，越大侵蝕效果or膨脹越明顯。
+- dst : 目標圖
+- anchor：原點位置，預設為結構元素的中央。
+- iterations：執行次數，預設為1次，執行越多次侵蝕效果越明顯
+
+
+
+如下图蓝色的框的值就会被替换
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/dilate.erode.formula.jpg?raw=true">
+
+Example
+
+```python
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+
+src = cv.imread("wangzuxian.jpg")
+
+se = np.ones((3, 3), dtype=np.uint8)
+dilate = cv.dilate(src, se, None,  (-1, -1), 1)
+erode = cv.erode(src, se,  None, (-1, -1), 1)
+
+plt.figure(figsize=[20, 10])
+plt.tight_layout
+plt.subplot(2, 3, 1, title="original")
+plt.imshow(src[:, :, ::-1])
+plt.subplot(2, 3, 2, title="dilate")
+plt.imshow(dilate[:, :, ::-1])
+plt.subplot(2, 3, 3, title="erode")
+plt.imshow(erode[:, :, ::-1])
+
+se_strong = np.ones((7, 7), dtype=np.uint8)
+dilate_strong = cv.dilate(src, se_strong, None,  (-1, -1), 1)
+plt.subplot(2, 3, 5, title="dilate_strong")
+plt.imshow(dilate_strong[:, :, ::-1])
+
+erode_strong = cv.erode(src, se_strong, None,  (-1, -1), 1)
+plt.subplot(2, 3, 6, title="erode_strong")
+plt.imshow(erode_strong[:, :, ::-1])
+
+```
+
+
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/dilate.erode.jpg?raw=true">
+
+
+
+#### 开操作 Opening
+
+开运算可以使物体轮廓变得光滑，还能使狭窄的连结断开，以及消除外观上的毛刺，但在物体大于结构元素的情况下，开运算与侵蚀并不相同，图像的轮廓并没有产生整体的收缩，物体位置也没有发生任何变化，假如我们对一幅影像重复进行开运算，不会产生任何变化，这点和重复进行侵蚀会加强程度的现象不同
+
+`cv.getStructuringElement(shape, kernel, anchor = (-1, -1)` 
+
+- shape：模板形狀
+
+  有MORPH_RECT、MORPH_ELLIPSE、MORPH_CROSS三種可選。
+
+- ksize：模板尺寸
+
+`cv.morphologyEx(src, op, kernel)`
+
+- src：输入图，可以多通道，深度可为CV_8U，CV_16U，CV_16S，CV_32F或CV_64F。
+- op：操作种类，决定要进行何种型态学操作，在闭运算时输入MORPH_CLOSE。
+- kernal size：结构元素。
+- anchor：原点位置，预设为结构元素的中央。
+- iteration：执行次数，预设为1次。
+
+执行思路：
+
+1.转换为灰度图
+
+2.二值化
+
+3.建构结构模板(getStructuringElement)
+
+4.进行开操作
+
+Example：
+
+```python
+import cv2 as cv
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+src = cv.imread("boost.jpg")
+cv.namedWindow("input", cv.WINDOW_AUTOSIZE)
+cv.imshow("input", src)
+
+gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+dst = cv.GaussianBlur(gray, (9, 9), 2, 2)
+binary = cv.adaptiveThreshold(dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 45, 15)
+# binary = cv.Canny(src, 100, 200)
+
+se = cv.getStructuringElement(cv.MORPH_RECT, (5, 5), (-1, -1))
+binary_opening = cv.morphologyEx(binary, cv.MORPH_OPEN, se)
+
+plt.figure(figsize=[20, 10])
+plt.subplot(131, title='orginal')
+plt.imshow(src)
+plt.subplot(132, title='binary')
+plt.imshow(binary)
+plt.subplot(133, title='binary_opening')
+plt.imshow(binary_opening)
+```
+
+<img src="https://github.com/Stephenfang51/OpenCV_tutorial_chinese/blob/Stephenfang51-patch-1/images/morphology_opening.jpg?raw=true">
+
+------
+
+
 
 
 
@@ -2089,7 +2305,7 @@ HoughCircles(image, method, dp, minDist, circles=None, param1=None, param2=None,
 
 ------
 
-<h3 align = left> 数据结构 </h3>
+<h3 id=> 数据结构 </h3>
 
 ```
 Type:类型 CV_[位数][带符号与否][类型前缀][通道数]
@@ -2115,9 +2331,21 @@ CV_64F   (64 bit 浮点)
 CV_64FC1   CV_64FC2  CV_64FC3  CV_64FC4  
 ```
 
+------
 
+<h3 id=> 知识点 </h3>
 
+#### blob
 
+Blob在机器视觉中是指图像中的具有相似颜色、纹理等特征所组成的一块连通区域。**Blob**分析就是对前景/背景分离后的二值图像，对这一块连通区域进行几何分析得到一些重要的几何特征，例如：区域的面积、中心点坐标、质心坐标、最小外接矩形、主轴等
+
+Blob分析的一般步骤：
+
+（1）图像分割：分离出前景和背景
+
+（2）连通性分析：根据目标的连通性对目标区域进行标记，或者叫拓扑性分析
+
+（3）特征量计算：描述了区域的几何特征，这些几何特征不依赖与灰度值
 
 ------
 
